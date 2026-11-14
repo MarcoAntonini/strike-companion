@@ -1,0 +1,21 @@
+# Alesis / third-party files - never upload
+*.bin
+*.syx
+*.wav
+*.skt
+*.sin
+*.exe
+*.msi
+*.cab
+*.zip
+
+# Firmware builds and local copies
+firmware/
+SD CARD copy/
+
+# Old numbered copies (history is in Git)
+strike-companion_v*.html
+
+# Windows clutter
+Thumbs.db
+desktop.ini
