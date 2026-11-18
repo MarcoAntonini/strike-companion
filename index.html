@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Strike Companion v1.10</title>
+<title>Strike Companion v1.11</title>
 <style>
 :root{
   --bg:#111418; --panel:#191d23; --panel2:#20252c; --line:#2c333c; --text:#e6e9ee; --muted:#8b95a3;
@@ -349,12 +349,29 @@ details.pane{margin-top:6px !important}
 .zrows input[type=number]{width:52px}
 .zrows .mini{position:relative;height:8px;background:#0d1014;border-radius:4px;min-width:120px}
 .zrows .mini i{position:absolute;top:0;bottom:0;border-radius:4px}
+/* v1.11: kit picture in a column on the right, pad settings on the left */
+#kitBody{display:grid;grid-template-columns:minmax(0,1fr) 6px var(--kw,440px);align-items:start}
+#kitLeft{min-width:0}
+.kitside #kitChanges{max-height:32vh;overflow:auto}
+.lyr .lload .lname{flex-shrink:0}
+#padMain{min-width:0}
+.ksplit{cursor:col-resize;align-self:stretch;margin:0 1px;border-radius:3px;min-height:200px}
+.ksplit:hover,.ksplit.drag{background:var(--accent)}
+.kitside{position:sticky;top:44px;min-width:0}
+.kitview .padname,.kitview .padtools{position:static}
+.kitview .padname{padding:6px 10px 0}
+.kitview .padtools{padding:4px 8px;flex-wrap:wrap;justify-content:flex-start}
+.kitview svg{width:100% !important;height:auto !important;max-height:calc(100vh - 170px) !important}
+#padMain .padtabs{margin-top:0}
+.layers{grid-template-columns:repeat(auto-fit,minmax(360px,1fr)) !important}
+.settings3{grid-template-columns:repeat(auto-fit,minmax(240px,auto)) !important}
+@media (max-width:1100px){#kitBody{grid-template-columns:1fr}.ksplit{display:none}.kitside{position:static;order:-1}}
 </style>
 </head>
 <body>
 
 <div class="menubar" id="menubar">
-  <span class="brand">Strike <b>Companion</b> <small style="color:#888;font-weight:500">v1.10</small></span>
+  <span class="brand">Strike <b>Companion</b> <small style="color:#888;font-weight:500">v1.11</small></span>
   <div class="menu" data-menu="file"><button>File</button><div class="drop">
     <button data-cmd="new">New<span class="k">Ctrl+N</span></button>
     <button data-cmd="open">Open file (.skt / .sin)…<span class="k">Ctrl+O</span></button>
@@ -561,7 +578,22 @@ details.pane{margin-top:6px !important}
         <div id="kitRO" class="banner info hidden">Preset kit (internal): it can’t be overwritten. Edit freely, then <b>Save As…</b> stores it on the SD card as a new user kit.</div>
         <div id="kitDamaged" class="banner warn hidden">This kit file is cut short (damaged on the card); pads that point past the end show as “#n?”. Fix them and use Save As….</div>
 
+        <div id="kitBody">
+        <div id="kitLeft">
         <div id="padView">
+          <div id="padMain"><div class="padtabs" id="padTabs"></div><div id="padDetail"></div></div>
+        </div>
+
+        <div id="fxView" class="hidden">
+          <div class="fxgrid" id="kitFields"></div>
+        </div>
+
+        <details class="pane" style="margin-top:10px"><summary class="ph" style="cursor:pointer">All pads</summary><div class="pb tbl-wrap"><table class="pad-tbl" id="padTbl"></table></div></details>
+
+        <div class="small muted mono" id="kitPath" style="margin-top:6px"></div>
+        </div>
+          <div class="ksplit" id="kitSideSplit" title="Drag to make the kit picture wider or narrower · double-click = default"></div>
+          <div class="kitside">
           <div class="kitview" id="kitView">
             <div class="padname" id="padTitle"></div>
             <div class="padtools">
@@ -572,20 +604,12 @@ details.pane{margin-top:6px !important}
               <button class="tbtn" id="btnArrange" title="Move, resize and rename the drums and cymbals to match your own kit">Arrange</button>
             </div>
             <div id="kitSvg"></div>
-            <div class="hsplit" id="kitSplit" title="Drag to make the kit picture bigger or smaller"></div>
-            <div class="row hidden" id="arrPanel" style="padding:6px 10px;border-top:1px solid #10151b;gap:12px;align-items:flex-end"></div>
+            <div class="hsplit hidden" id="kitSplit"></div>
+            <div class="row hidden" id="arrPanel" style="padding:6px 10px;border-top:1px solid #10151b;gap:8px 12px;align-items:flex-end;flex-wrap:wrap"></div>
           </div>
-          <div class="padtabs" id="padTabs"></div>
-          <div id="padDetail"></div>
+        <details class="pane" style="margin-top:6px" open><summary class="ph" style="cursor:pointer">Changes</summary><div class="pb small" id="kitChanges"></div></details>
+          </div>
         </div>
-
-        <div id="fxView" class="hidden">
-          <div class="fxgrid" id="kitFields"></div>
-        </div>
-
-        <details class="pane" style="margin-top:10px"><summary class="ph" style="cursor:pointer">All pads</summary><div class="pb tbl-wrap"><table class="pad-tbl" id="padTbl"></table></div></details>
-        <details class="pane" style="margin-top:10px" open><summary class="ph" style="cursor:pointer">Changes</summary><div class="pb small" id="kitChanges"></div></details>
-        <div class="small muted mono" id="kitPath" style="margin-top:6px"></div>
       </div>
     </div>
   </div>
@@ -1392,6 +1416,17 @@ const ZB_COLORS = ['#2f9e6b','#3d8fd6','#6c6fe0','#9a5fd1','#d0603f','#c79a2e','
     ks.addEventListener('pointermove', mv); ks.addEventListener('pointerup', up);
   });
   ks.ondblclick = () => { root.style.setProperty('--kh', '220px'); store.set('kitH', 220); };
+  // v1.11: width of the kit-picture column
+  root.style.setProperty('--kw', store.get('kitW', 440)+'px');
+  const kw = document.getElementById('kitSideSplit');
+  kw.addEventListener('pointerdown', (e) => {
+    e.preventDefault(); kw.setPointerCapture(e.pointerId); kw.classList.add('drag');
+    const right = kw.parentElement.getBoundingClientRect().right;
+    const mv = (ev) => root.style.setProperty('--kw', Math.max(260, Math.min(window.innerWidth*0.6, right - ev.clientX)) + 'px');
+    const up = () => { kw.classList.remove('drag'); kw.removeEventListener('pointermove', mv); kw.removeEventListener('pointerup', up); store.set('kitW', Math.round(parseFloat(getComputedStyle(root).getPropertyValue('--kw')))); };
+    kw.addEventListener('pointermove', mv); kw.addEventListener('pointerup', up);
+  });
+  kw.ondblclick = () => { root.style.setProperty('--kw', '440px'); store.set('kitW', 440); };
 })();
 /* ---------- Views and menus (laid out like the Strike Editor: File / Mode / Tools / Help) ---------- */
 function setView(v){
@@ -1446,7 +1481,7 @@ async function runCmd(c){
     case 'checksizes': setView('kits'); openKitBrowser(); $('kitCheckAll').click(); break;
     case 'settings': $('btnSettings').click(); break;
     case 'help-connect': info(CONNECT_HELP); break;
-    case 'about': info('<h2 style="margin-top:0">Strike Companion v1.10</h2><p>A free, unofficial browser editor for the Alesis Strike / Strike Pro drum module: Kit Editor, Instrument Editor, factory content update browser, plus live MIDI tools (hi-hat monitor, MIDI-OX log analysis, trigger settings). Runs entirely in Chrome or Edge; nothing is uploaded anywhere.</p><p class="small"><b>Not affiliated with, endorsed by or supported by Alesis or inMusic.</b> Alesis and Strike are trademarks of their owners. File formats were worked out independently for compatibility.</p><p class="small muted">Use at your own risk. Preset (internal) content is never written; user kits and instruments are saved to the SD card. Keep a backup copy of your SD card and of your trigger settings (.syx) before making changes.</p>'); break;
+    case 'about': info('<h2 style="margin-top:0">Strike Companion v1.11</h2><p>A free, unofficial browser editor for the Alesis Strike / Strike Pro drum module: Kit Editor, Instrument Editor, factory content update browser, plus live MIDI tools (hi-hat monitor, MIDI-OX log analysis, trigger settings). Runs entirely in Chrome or Edge; nothing is uploaded anywhere.</p><p class="small"><b>Not affiliated with, endorsed by or supported by Alesis or inMusic.</b> Alesis and Strike are trademarks of their owners. File formats were worked out independently for compatibility.</p><p class="small muted">Use at your own risk. Preset (internal) content is never written; user kits and instruments are saved to the SD card. Keep a backup copy of your SD card and of your trigger settings (.syx) before making changes.</p>'); break;
   }
 }
 const CONNECT_HELP = `<h2 style="margin-top:0">How the drives are found</h2>

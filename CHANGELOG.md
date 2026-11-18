@@ -1,5 +1,8 @@
 # Changelog
 
+## v1.11
+- Kit Editor: the kit picture sits in a column on the right (drag its edge to resize), pad settings use the space on the left.
+
 ## v1.10
 - Cleaned up for public release: About box with disclaimer, wording fixes.
 
