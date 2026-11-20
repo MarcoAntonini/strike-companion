@@ -374,6 +374,10 @@ details.pane{margin-top:6px !important}
 @media (max-width:1100px){#kitBody{grid-template-columns:1fr}.ksplit{display:none}.kitside{position:static;order:-1}}
 /* v1.09: Practice tab */
 #tab-practice{max-width:1500px;margin:0 auto}
+#prVerdict{position:fixed;left:50%;top:42%;transform:translate(-50%,-50%);z-index:900;pointer-events:none;text-align:center;font-weight:900;letter-spacing:.06em;text-shadow:0 4px 30px rgba(0,0,0,.7),0 0 2px #000;animation:vrd 3.6s ease-out forwards}
+#prVerdict b{display:block;font-size:min(16vw,170px);line-height:1}
+#prVerdict small{display:block;font-size:min(4vw,34px);font-weight:700;letter-spacing:.12em;color:#e8eef5;margin-top:6px}
+@keyframes vrd{0%{opacity:0;transform:translate(-50%,-50%) scale(.6)}8%{opacity:1;transform:translate(-50%,-50%) scale(1.08)}14%{transform:translate(-50%,-50%) scale(1)}78%{opacity:1}100%{opacity:0;transform:translate(-50%,-50%) scale(1.05)}}
 #prTransport{position:sticky;top:38px;z-index:30;padding:10px 14px;background:#161b22}
 .pr-trow{display:flex;flex-wrap:wrap;align-items:center;gap:10px 18px}
 .pr-trow.sub{position:absolute;right:14px;top:50%;transform:translateY(-50%);left:auto;margin:0;padding:4px 10px;width:max-content;max-width:min(340px,30%);background:#1b2230;border:1px solid #2f3a4d;border-radius:8px;z-index:5;pointer-events:none;text-align:right;line-height:1.3}   /* the message sits at the right end of the bar and never pushes the notation down */
@@ -556,6 +560,7 @@ input.pr-ren{width:96px;font:inherit;font-weight:600;background:#0a0d12;color:#f
     <button data-cmd="connect">Connect Strike drives…</button>
     <button data-cmd="reconnect">Reconnect remembered drives</button>
     <button data-cmd="forget">Forget remembered drives</button>
+    <button data-cmd="disconnectall">Disconnect all drives and content updates (SD, Internal, .bin)</button>
     <hr>
     <button data-cmd="bin">Open Factory Content Update (.bin) as preset library…</button>
     <hr>
@@ -776,6 +781,7 @@ input.pr-ren{width:96px;font:inherit;font-weight:600;background:#0a0d12;color:#f
               <label class="row" title="Play this kit with your unsaved edits on the computer when you hit pads"><input type="checkbox" id="kitPreview"> Hear edits</label>
               <button class="iconbtn" id="padPlay" title="Preview the selected pad on the computer (velocity 100)">▶</button>
               <button class="iconbtn" id="padPlayM" title="Play the selected pad's note on the module">▶ module</button>
+              <label class="row" title="Play hi-hat sounds from the computer as if the pedal were pressed (for working without the module)"><input type="checkbox" id="kitPedalClosed"> Pedal closed</label>
               <button class="tbtn" id="btnArrange" title="Move, resize and rename the drums and cymbals to match your own kit">Arrange</button>
             </div>
             <div id="kitSvg"></div>
@@ -916,7 +922,7 @@ input.pr-ren{width:96px;font:inherit;font-weight:600;background:#0a0d12;color:#f
         <div class="cell"><b id="prLcdTempo">—</b><span id="prLcdSpd">♩</span></div>
         <div class="cell"><div class="sigrow"><b id="prLcdSig">—</b></div><span id="prLcdStat"></span></div>
       </div>
-      <div class="pr-tbtns pr-clk"><button id="prCountBtn" class="tp cnt" title="Count-in before the music: off / 1 / 2 / 3 bars (click to change)"><span class="lo">12</span><span class="hi">34</span><i id="prCountN"></i></button><button id="prMetro" class="tp" title="Metronome click (on / off)"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"><path d="M8 21 10 3h4l2 18z"/><path d="M12 17 16.5 6.5"/><circle cx="16.5" cy="6.5" r="1.2" fill="currentColor"/><path d="M6.5 21h11"/></svg></button><span class="pr-zoomw"><button id="prMtBtn" class="tp mini" title="Metronome settings: sound, subdivisions, accents, silent bars">▾</button><div id="prMtPop" class="pr-pop" hidden><label>Volume<input type="range" id="prVol" min="0" max="100"></label><label>Sound<select id="prMtSound"><option value="click">Click</option><option value="wood">Wood block</option><option value="beep">Soft beep</option><option value="cow">Cowbell</option></select></label><label>Subdivision<select id="prMtSub"><option value="off">None (beats only)</option><option value="8">8th notes</option><option value="3">Triplets</option><option value="16">16th notes</option></select></label><label>Accent<select id="prMtAcc"><option value="1">First beat of the bar</option><option value="0">None (all equal)</option></select></label><label>Subdivision volume<input type="range" id="prMtSubVol" min="10" max="100" step="5"></label><div class="pr-pop-row"><span>Silent bars</span><span>play <input type="number" id="prMtOn" min="1" max="16" step="1"> bars, mute <input type="number" id="prMtOff" min="0" max="16" step="1"></span></div><div class="pr-pop-hint">Mute = 0 keeps the click always on. With e.g. 2 + 2 the click disappears every other pair of bars, to test your own time.</div></div></span></div>
+      <div class="pr-tbtns pr-clk"><button id="prCountBtn" class="tp cnt" title="Count-in before the music: off / 1 / 2 / 3 bars (click to change)"><span class="lo">12</span><span class="hi">34</span><i id="prCountN"></i></button><button id="prMetro" class="tp" title="Metronome click (on / off)"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"><path d="M8 21 10 3h4l2 18z"/><path d="M12 17 16.5 6.5"/><circle cx="16.5" cy="6.5" r="1.2" fill="currentColor"/><path d="M6.5 21h11"/></svg></button><span class="pr-zoomw"><button id="prMtBtn" class="tp mini" title="Metronome settings: sound, subdivisions, accents, silent bars">▾</button><div id="prMtPop" class="pr-pop" hidden><label>Volume<input type="range" id="prVol" min="0" max="100"></label><label>Sound<select id="prMtSound"><option value="click">Click</option><option value="wood">Wood block</option><option value="beep">Soft beep</option><option value="cow">Cowbell</option></select></label><label>Subdivision<select id="prMtSub"><option value="off">None (beats only)</option><option value="8">8th notes</option><option value="3">Triplets</option><option value="16">16th notes</option></select></label><label title="Where the click and the count-in are heard">Click goes to<select id="prMtOut"><option value="app">The computer (app sound)</option><option value="midi">The drum module (MIDI out)</option><option value="both">Both</option></select></label><div class="pr-pop-row" id="prMtNotes"><span>Module notes</span><span>beat <input type="number" id="prMtNB" min="0" max="127"><button id="prMtLB" class="iconbtn" title="Hit the pad you want for the beats">Learn</button> accent <input type="number" id="prMtNA" min="0" max="127"><button id="prMtLA" class="iconbtn" title="Hit the pad you want for the accent">Learn</button></span></div><div class="pr-pop-hint" id="prMtNHint">The module only sounds notes that a pad of the open kit is assigned to: press Learn, then hit that pad (a rim, a cowbell pad…). Hit the same pad twice if you want the same sound for beat and accent.</div><label>Accent<select id="prMtAcc"><option value="1">First beat of the bar</option><option value="0">None (all equal)</option></select></label><label>Subdivision volume<input type="range" id="prMtSubVol" min="10" max="100" step="5"></label><div class="pr-pop-row"><span>Silent bars</span><span>play <input type="number" id="prMtOn" min="1" max="16" step="1"> bars, mute <input type="number" id="prMtOff" min="0" max="16" step="1"></span></div><div class="pr-pop-hint">Mute = 0 keeps the click always on. With e.g. 2 + 2 the click disappears every other pair of bars, to test your own time.</div></div></span></div>
       <div class="pr-tbtns pr-views"><button id="prShowStaff" class="tp" title="Show / hide the drum notation"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h18M3 11h18M3 14h18M3 17h18"/><ellipse cx="9" cy="17" rx="2.2" ry="1.6" fill="currentColor"/><path d="M11 17V5l5 1"/></svg></button><button id="prShowRoll" class="tp" title="Show / hide the piano roll"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="7" height="3" rx="1"/><rect x="9" y="10.5" width="6" height="3" rx="1"/><rect x="14" y="16" width="7" height="3" rx="1"/></svg></button><button id="prShowKit" class="tp" title="Show / hide the drum kit: the pieces light up as they are played"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="14" rx="7" ry="3"/><path d="M5 14v4c0 1.7 3.1 3 7 3s7-1.3 7-3v-4"/><path d="M3 6h6M15 4h6M6 6v4M18 4v4"/></svg></button><button id="prShowScore" class="tp" title="Show / hide the scores: accuracy, last hit, bar heat-map and the final report"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V11M10 20V5M16 20v-7M21 20H3"/></svg></button><span class="pr-zoomw"><button id="prZoomBtn" class="tp" title="Horizontal zoom: time axis of notation and piano roll"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="10.5" cy="10.5" r="6"/><path d="M15 15l6 6M7 10.5h7M8.7 8.8L7 10.5l1.7 1.7M12.3 8.8l1.7 1.7-1.7 1.7"/></svg></button><div id="prZoomPop" hidden><span class="zl">↔</span><input type="range" id="prZoom" min="6" max="60" step="1"><span id="prZoomVal"></span></div></span><span class="pr-zoomw"><button id="prVZoomBtn" class="tp" title="Vertical zoom: height of notation and piano roll"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="10.5" cy="10.5" r="6"/><path d="M15 15l6 6M10.5 7v7M8.8 8.7l1.7-1.7 1.7 1.7M8.8 12.3l1.7 1.7 1.7-1.7"/></svg></button><div id="prVZoomPop" hidden><span class="zl">↕</span><input type="range" id="prVZoom" min="60" max="200" step="5"><span id="prVZoomVal"></span></div></span></div>
       <span hidden><input type="number" id="prFrom" min="1" value="1"><input type="number" id="prTo" min="1" value="1"></span>
     </div>
@@ -939,8 +945,9 @@ input.pr-ren{width:96px;font:inherit;font-weight:600;background:#0a0d12;color:#f
       </div></div>
       <div class="pr-grp"><h3>Sound · simulation</h3><div class="pr-opts">
         <select id="prCount" hidden><option value="0">none</option><option value="1">1 bar</option><option value="2">2 bars</option><option value="3">3 bars</option></select>
-        <label title="Plays the drum parts of the score while you play">Play the score <select id="prPlayMode"><option value="off">off</option><option value="synth">app sounds</option><option value="kit">kit sounds</option><option value="midi">on the module (MIDI out)</option></select> <button id="prSounds" title="Choose the app sounds or the sounds of a kit">Sounds…</button></label>
+        <label title="Plays the drum parts of the score while you play">Play the score <select id="prPlayMode"><option value="off">off</option><option value="synth">app sounds</option><option value="kit">kit sounds</option><option value="midi">on the module (MIDI out)</option></select> <button id="prSounds" title="Choose the app sounds or the sounds of a kit">Sounds…</button> <button id="prHhBtn" class="hidden" title="Hi-hat pedal sent to the module (CC): open the settings">Hi-hat pedal…</button></label>
         <label title="You are not playing: the whole part sounds and nothing is scored. Uses the app sounds if “Play the score” is off"><input type="checkbox" id="prListenOnly"> I’m not playing — just listen to the score</label>
+        <label title="Press Play, then the lesson starts as soon as you hit any pad (the count-in follows). Needs the MIDI input"><input type="checkbox" id="prWaitHit"> Start when I hit a pad</label>
         <label title="Plays the part for you with human-like mistakes, to try the page without the kit"><input type="checkbox" id="prSim"> Simulated player (demo)</label>
       </div></div>
     </div>
@@ -991,6 +998,12 @@ input.pr-ren{width:96px;font:inherit;font-weight:600;background:#0a0d12;color:#f
       <label><input type="radio" name="prSndMode" value="kit"> Kit sounds <span class="muted small">(samples of a kit or of single instruments, one per part)</span></label>
       <label><input type="radio" name="prSndMode" value="midi"> On the module <span class="muted small">(MIDI out)</span></label>
     </div>
+    <div id="prHhBox" class="hidden" style="margin:8px 0;padding:8px 10px;border:1px solid #2f3a4d;border-radius:8px">
+      <div class="small"><b>Hi-hat</b> — the open / closed sound comes from your own pedal, read by the module.</div>
+      <div class="row small" style="gap:8px;margin-top:6px;flex-wrap:wrap"><span hidden><input type="number" id="prHhCC"><input type="number" id="prHhVal"><input type="number" id="prHhCh"><input type="checkbox" id="prHhOn"></span>pedal-down note <input type="number" id="prHhNote" min="0" max="127" style="width:56px" title="Held while the hi-hat is closed (default 21): note-on closes it, note-off opens it"> hit note <input type="number" id="prHhOpen" min="0" max="127" style="width:56px" title="The hi-hat hit itself (default 8)"> on channel <input type="number" id="prHhNCh" min="1" max="16" style="width:56px" title="MIDI channel the notes are sent on (default 10)"> <button class="iconbtn" id="prHhTestO" title="Release the pedal-down note, then hit">Test open</button><button class="iconbtn" id="prHhTest" title="Hold the pedal-down note, then hit">Test closed</button></div>
+      <div class="small" id="prHhKit" style="margin-top:6px"></div>
+      
+    </div>
     <div id="prSndKit" class="hidden">
       <div class="pr-snd-kit"><span>Kit</span><button id="prSndKitBtn" class="tbtn" title="Choose the kit">Choose a kit…</button><button id="prSndEdKit" class="tbtn" title="Use the kit that is open in the Kit Editor">Kit Editor’s kit</button></div>
       <div id="prSndPick" class="hidden"><input type="text" id="prSndFilter" class="searchbox" placeholder="Search kits…"><div class="list tree" id="prSndTree" style="height:250px;margin-top:6px"></div></div>
@@ -1018,7 +1031,7 @@ input.pr-ren{width:96px;font:inherit;font-weight:600;background:#0a0d12;color:#f
 <dialog id="dlgSave">
   <h2 style="margin-top:0" id="saveTitle">Save to SD card</h2>
   <div class="form">
-    <label id="saveFolderLbl">Folder in Instruments</label><input type="text" id="saveFolder" list="dlFolders" style="width:260px">
+    <label id="saveFolderLbl">Folder in Instruments</label><input type="text" id="saveFolder" list="dlFolders" style="width:260px"> <select id="saveFolderPick" style="max-width:220px" title="All folders found on the SD card"></select>
     <label>Name (max 26 characters)</label><input type="text" id="saveName" maxlength="26" style="width:260px">
   </div>
   <p class="small muted" id="savePath" style="margin:10px 0 0"></p>
@@ -1802,10 +1815,11 @@ async function runCmd(c){
     case 'lock': lockInternal(true); break;
     case 'autounlock': store.set('autoUnlock', !store.get('autoUnlock', true)); $('mAuto').classList.toggle('on', store.get('autoUnlock', true)); break;
     case 'reconnect': { const n = await reconnectDrives(true); if (!n) info('<p>No remembered drives could be opened. Use <b>File → Connect Strike drives…</b>.</p>'); break; }
+    case 'disconnectall': { if (!LIB.sources.length){ setStatus('Nothing is connected.'); break; } if (!confirm('Disconnect the SD card, the internal drive and every content update (.bin)?\n\nA kit already open stays on screen (save it first if you changed it); the remembered drives are kept so you can reconnect them.')) break; LIB.sources = []; rebuildLibrary(); setStatus('All drives and content updates disconnected.'); break; }
     case 'forget': await IDB.set('internal', null); await IDB.set('sd', null); REMEMBERED.internal = REMEMBERED.sd = null; renderLibBars(); setStatus('Remembered drives forgotten.'); break;
     case 'savecfg': saveAppSettings(); break;
     case 'loadcfg': { const f = await pickFiles('.json', false); if (f[0]) loadAppSettings(f[0]); break; }
-    case 'bin': { const f = await pickFiles('.bin', false); if (f[0]) openBin(f[0]); break; }
+    case 'bin': { const f = await pickFiles('.bin', true); for (const x of f) await openBin(x); break; }
     case 'quick': quickInstrument(); break;
     case 'quickhh': quickInstrument('cymbal'); break;
     case 'quickped': quickInstrument('pedal'); break;
@@ -1900,6 +1914,7 @@ function lockInternal(interactive){
 window.addEventListener('pagehide', () => { if (internalUnlocked){ try { strikeOut()?.send(SX_LOCK); } catch {} } });
 
 /* ---------- Live state ---------- */
+const HHCLOSED = {on: !!store.get('hhClosedPedal', false)};
 const L = {
   log: [], logOn: true, logStart: null, logDirty: true,
   cc: [], chicks: [], paused: false, pauseAt: 0,
@@ -1927,7 +1942,7 @@ function onMidi(ev){
   if (st>=0xF0) return;
   const s = st&0xF0, ch=(st&15)+1;
   if (cfg.chan && ch!==cfg.chan) return;
-  if (s===0xB0 && e.d1===cfg.cc) onPedal(now, e.d2);
+  if (s===0xB0 && e.d1===cfg.cc){ L.ccCh = ch; onPedal(now, e.d2); }
   else if (s===0x90 && e.d2>0) onNote(now, e.d1, e.d2, ch);
 }
 
@@ -1944,7 +1959,7 @@ function onPedal(now, v){
 }
 function onNote(now, note, vel, ch){
   if (note===cfg.chick){ L.chicks.push({t:now, v:vel}); L.chickCount++; L.lastChick=vel; }
-  if (window.PRAC) PRAC.onNote(now, note, vel);
+  if (window.PRAC) PRAC.onNote(now, note, vel, ch);
   padHit(note, vel, ch);
   kitPreviewNote(note, vel);
 }
@@ -2357,7 +2372,17 @@ class SampleMap extends Map {
   has(k){ return !!this.get(k); }
 }
 const LIB = {sources:[], kits:[], insts:[], instMap:new Map(), sampleMap:new SampleMap(), backupDir:null};
-const relAfter = (p, seg) => { const i = p.toLowerCase().indexOf(seg.toLowerCase()+'/'); return i>=0 ? p.slice(i+seg.length+1) : p; };
+const relAfter = (p, seg) => { const m = new RegExp('(^|/)'+seg.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'/','i').exec(p); return m ? p.slice(m.index+m[0].length) : p; };
+async function findDirCI(parent, name){
+  try { return await parent.getDirectoryHandle(name); } catch {}
+  for await (const [n,h] of parent.entries()) if (h.kind==='directory' && n.toLowerCase()===name.toLowerCase()) return h;
+  return null;
+}
+async function listSubdirs(dir, prefix='', out=[], depth=0){
+  if (depth>7) return out;
+  for await (const [n,h] of dir.entries()){ if (h.kind!=='directory' || n.startsWith('.')) continue; const q = prefix?prefix+'/'+n:n; out.push(q); await listSubdirs(h, q, out, depth+1); }
+  return out;
+}
 const folderOf = (p) => { const a = p.split('/'); return a.length>1 ? a[a.length-2] : ''; };
 const baseOf = (p) => p.split('/').pop().replace(/\.(skt|sin|wav)$/i,'');
 const hasFS = !!window.showDirectoryPicker;
@@ -2383,13 +2408,13 @@ function rebuildLibrary(){
 function addSource(src){
   // one source per kind (re-opening replaces it); a content update and an internal drive are both "internal" content
   // the internal drive and a content update now work together: the update adds / overrides files, the drive supplies the rest (e.g. samples the update does not contain)
-  LIB.sources = LIB.sources.filter(s => s.kind!==src.kind);
+  LIB.sources = LIB.sources.filter(s => src.kind==='bin' ? !(s.kind==='bin' && s.label===src.label) : s.kind!==src.kind);   // several content updates can be open together (a later one overrides the same files of an earlier one)
   LIB.sources.push(src); LIB.sources.sort((a,b) => (a.kind==='bin') - (b.kind==='bin')); rebuildLibrary();
 }
 function removeSource(src){ LIB.sources = LIB.sources.filter(s=>s!==src); rebuildLibrary(); }
 const REMEMBERED = {internal:null, sd:null};
 function renderLibBars(){
-  const intSrc = LIB.sources.find(s=>s.kind==='internal' || s.kind==='bin'), sd = LIB.sources.find(s=>s.kind==='sd');
+  const ints = LIB.sources.filter(s=>s.kind==='internal' || s.kind==='bin'), intSrc = ints.length < 2 ? ints[0] : {label: ints.map(s=>s.label).join(' + '), kits: ints.flatMap(s=>s.kits), insts: ints.flatMap(s=>s.insts)}, sd = LIB.sources.find(s=>s.kind==='sd');
   $('lampInt').classList.toggle('on', !!intSrc); $('lampSd').classList.toggle('on', !!sd);
   $('lampInt').classList.toggle('wait', !intSrc && !!REMEMBERED.internal); $('lampSd').classList.toggle('wait', !sd && !!REMEMBERED.sd);
   $('lampInt').title = intSrc ? `Internal (preset, read-only): ${intSrc.label} · ${intSrc.kits.length} kits · ${intSrc.insts.length} instruments` : 'Internal drive not connected (click to connect)';
@@ -2532,21 +2557,23 @@ async function openLooseFiles(files){
 }
 function setStatusAll(t){ setStatus(t); }
 async function ensureSamples(){
+  // one scan per source, shared by every caller: a second call made while the first is still reading the folder waits for it
+  // (before, it saw an empty list and the first click on a pad said "sample not found")
   let changed = false;
   for (const s of LIB.sources){
     if (s.samples) continue;
-    s.samples = [];
-    const base = s.root || s.readRoot; if (!base) continue;
-    let sdir = null;
-    for await (const [n,h] of base.entries()) if (h.kind==='directory' && /^samples$/i.test(n)) sdir = h;
-    const found = [];
-    if (sdir) await walkDir(sdir, '', found, n=>/\.wav$/i.test(n));
-    s.samples = found.map(f=>({rel:f.path, handle:f.handle, read: fileReader(f.handle)}));
-    changed = true;
-  }
-  if (changed){
-    for (const s of LIB.sources) for (const x of s.samples||[]){ x.ref = refPrefix(s)+x.rel; LIB.sampleMap.set(x.ref.toLowerCase(), x); }
-    fillSampleDatalist();
+    if (!s._scan) s._scan = (async () => {
+      const base = s.root || s.readRoot; let found = [];
+      if (base){
+        let sdir = null;
+        for await (const [n,h] of base.entries()) if (h.kind==='directory' && /^samples$/i.test(n)) sdir = h;
+        if (sdir) await walkDir(sdir, '', found, n=>/\.wav$/i.test(n));
+      }
+      s.samples = found.map(f=>({rel:f.path, handle:f.handle, read: fileReader(f.handle)}));
+      for (const x of s.samples){ x.ref = refPrefix(s)+x.rel; LIB.sampleMap.set(x.ref.toLowerCase(), x); }
+      fillSampleDatalist();
+    })();
+    await s._scan; changed = true;
   }
   return [...LIB.sampleMap.values()];
 }
@@ -2664,10 +2691,18 @@ function saveDialog(kind, folders, defFolder, defName){
   return new Promise(res => {
     const dlg = $('dlgSave'), isInst = kind==='instrument';
     $('saveTitle').textContent = isInst ? 'Save user instrument to SD card' : 'Save user kit to SD card';
-    $('saveFolderLbl').style.display = $('saveFolder').style.display = isInst ? '' : 'none';
+    $('saveFolderLbl').style.display = '';
+    $('saveFolder').style.display = isInst ? '' : 'none';
+    $('saveFolderPick').style.display = '';
+    $('saveFolderLbl').textContent = isInst ? 'Folder in Instruments' : 'Folder in Kits';
     $('dlFolders').innerHTML = folders.map(f=>`<option value="${esc(f)}">`).join('');
+    const pk = $('saveFolderPick');
+    pk.innerHTML = (isInst ? '' : `<option value="">(Kits root)</option>`) + folders.map(f=>`<option value="${esc(f)}">${esc(f)}</option>`).join('');
+    // preselect
+    pk.value = defFolder||''; if (pk.value!==(defFolder||'')) pk.selectedIndex = isInst ? -1 : 0;
+    pk.onchange = () => { $('saveFolder').value = pk.value; $('saveFolder').oninput(); };
     $('saveFolder').value = defFolder || ''; $('saveName').value = (defName||'').slice(0,26); $('saveErr').textContent = '';
-    const upd = () => { $('savePath').textContent = 'SD card: ' + (isInst ? `Instruments/${$('saveFolder').value.trim()}/${$('saveName').value.trim()}.sin` : `Kits/${$('saveName').value.trim()}.skt`); };
+    const upd = () => { $('savePath').textContent = 'SD card: ' + (isInst ? `Instruments/${$('saveFolder').value.trim()}/${$('saveName').value.trim()}.sin` : `Kits/${$('saveFolder').value.trim().replace(/^\/+|\/+$/g,'')}${$('saveFolder').value.trim()?'/':''}${$('saveName').value.trim()}.skt`); };
     $('saveFolder').oninput = $('saveName').oninput = upd; upd();
     const done = (v) => { dlg.close(); $('saveOk').onclick = $('saveCancel').onclick = null; res(v); };
     $('saveCancel').onclick = () => done(null);
@@ -2680,7 +2715,12 @@ function saveDialog(kind, folders, defFolder, defName){
         if (!folder) return $('saveErr').textContent = 'Instruments must be inside a folder (the module shows one folder level).';
         if (BAD_NAME.test(folder)) return $('saveErr').textContent = 'Use a single folder name (no / or \\).';
       }
-      done({folder, name});
+      if (!isInst && folder){
+        const segs = folder.split(/[\\/]+/).filter(Boolean);
+        if (segs.some(g=>BAD_NAME.test(g) || g==='.' || g==='..')) return $('saveErr').textContent = 'Folder names can’t contain : * ? " < > | or be . / ..';
+        return done({folder: segs.join('/'), name, segs});
+      }
+      done({folder, name, segs: []});
     };
     dlg.showModal();
   });
@@ -2688,7 +2728,7 @@ function saveDialog(kind, folders, defFolder, defName){
 async function writeSdFile(sd, parts, bytes){
   // parts: ['Kits', name.skt] or ['Instruments', folder, name.sin]; returns the library item
   let dir = sd.root;
-  for (const d of parts.slice(0,-1)) dir = await dir.getDirectoryHandle(d, {create:true});
+  for (const d of parts.slice(0,-1)) dir = (await findDirCI(dir, d)) || await dir.getDirectoryHandle(d, {create:true});
   const fname = parts.at(-1);
   let exists = false; try { await dir.getFileHandle(fname); exists = true; } catch {}
   const path = parts.join('/');
@@ -2836,7 +2876,7 @@ function renderKit(){
     tr.dataset.pad = i;
     tr.onclick = (e) => { if (e.target.tagName==='BUTTON') return; if (KT.fx){ KT.fx=false; showFx(); } selectPad(i); };
     tr.querySelector('[data-pc]').onclick = () => playPad(i, 100, 0);
-    tr.querySelector('[data-pm]').onclick = () => playOnModule(r[52], 100);
+    tr.querySelector('[data-pm]').onclick = () => playOnModule(r[52], 100, id);
     t.append(tr);
   }
   drawKitSvg(); showFx(); renderPadDetail(); renderKitChanges();
@@ -3067,6 +3107,7 @@ function renderArrange(){
   $('arrReset').onclick = () => { if (!confirm('Put every drum and cymbal back in the standard layout and remove your names?')) return; LAYOUT = {pos:{}, names:{}, detached:{}}; saveLayout(); ARR.sel = null; drawKitSvg(); renderArrange(); renderPadTabs(); renderPadDetail(); };
   $('arrDone').onclick = () => { ARR.on = false; ARR.sel = null; drawKitSvg(); renderArrange(); };
 }
+$('kitPedalClosed').checked = HHCLOSED.on; $('kitPedalClosed').onchange = () => { HHCLOSED.on = $('kitPedalClosed').checked; store.set('hhClosedPedal', HHCLOSED.on); };
 $('btnArrange').onclick = () => { ARR.on = !ARR.on; ARR.sel = null; drawKitSvg(); renderArrange(); };
 function flashZone(i){ const id = SC.kitPadId(KT.kit.pads[i]); const el = $('kitSvg').querySelector(`[data-id="${id}"]`); if (el){ el.classList.remove('hit'); void el.getBoundingClientRect(); el.classList.add('hit'); } }
 const TAB_ORDER = ['S1H ','S1R ','T1H ','T1R ','T2H ','T2R ','T3H ','T3R ','T4H ','T4R ','R1D ','R1B ','R1E ','C1B ','C1E ','C2B ','C2E ','C3B ','C3E ','H1B ','H1E ','H1F ','K1H ','K2H '];
@@ -3081,7 +3122,7 @@ function renderPadTabs(){
   if (KT.fx) $('fxView').before(host); else $('padDetail').before(host);
 }
 $('padPlay').onclick = () => KT.kit && playPad(KT.pad, 100, 0);
-$('padPlayM').onclick = () => KT.kit && playOnModule(KT.kit.pads[KT.pad][52], 100);
+$('padPlayM').onclick = () => KT.kit && playOnModule(KT.kit.pads[KT.pad][52], 100, SC.kitPadId(KT.kit.pads[KT.pad]));
 function newKit(){
   const tmpl = KT.kit || null;
   if (KT.item && kitIsDirty() && !confirm('You will lose any unsaved changes. Are you sure you would like to create a new kit file?')) return;
@@ -3097,7 +3138,9 @@ function selectPad(i){
   document.querySelectorAll('#padTbl tr[data-pad]').forEach(tr => tr.classList.toggle('sel', +tr.dataset.pad===i));
   drawKitSvg(); renderPadTabs(); renderPadDetail(); renderKitBrowser();
 }
-function playOnModule(note, vel){
+const MOD_IN = {'H1B ': 8, 'H1E ': 7};                       // the module's own input notes for the hi-hat (bow 8, edge 7) — whatever the pad's MIDI-out note is
+function playOnModule(note, vel, padId){
+  if (padId && MOD_IN[padId] != null) note = MOD_IN[padId];
   const out = getOut();
   if (!out){ flashNote('Pick the module as the MIDI output (top of the page) to play pads on it.'); return; }
   out.send([0x99, note, vel]); setTimeout(()=>{ try { out.send([0x89, note, 0]); } catch {} }, 150);
@@ -3123,7 +3166,7 @@ function markTarget(){
 document.querySelectorAll('#kbTarget button').forEach(b => b.onclick = () => { KT.target = +b.dataset.t; markTarget(); });
 async function previewInstrument(ref, vel=100){
   const inst = await loadInst(ref); if (!inst) return;
-  const ped = inst.header[1]===3 ? (L.cur ?? 0) : 0;
+  const ped = inst.header[1]===3 ? (pedalNow() ?? 0) : 0;
   await playInst(inst, vel, ped, null, 'prev|'+ref);
 }
 let kbCat = null;
@@ -3150,7 +3193,8 @@ async function playPad(i, vel, onlyLayer){
     if (typeof res==='string') flashNote(res);
   }
 }
-const L_cur = () => L.cur;
+const L_cur = () => pedalNow();
+const pedalNow = () => (HHCLOSED.on ? 127 : L.cur);          // with “Pedal closed” ticked the app plays the hi-hat as if the pedal were down (no module needed)
 let noteTimer=null;
 function flashNote(t){ const el=$('kitChanges'); if (!el) return; el.dataset.note=t; renderKitChanges(); clearTimeout(noteTimer); noteTimer=setTimeout(()=>{ delete el.dataset.note; renderKitChanges(); }, 4000); }
 function renderPadDetail(){
@@ -3316,13 +3360,16 @@ $('kitSaveAs').onclick = async () => {
   if (!KT.kit) return;
   const sd = sdSource(); if (!sd) return alert('Open the SD card first: user kits are saved there.');
   if (KT.ram>KIT_RAM_LIMIT && !confirm('This kit is over the 200 MB sample memory limit; the module will warn “Kit is too large” and some samples will stay silent. Save anyway?')) return;
-  const r = await saveDialog('kit', [], '', KT.item.isNew ? 'My Kit' : KT.item.src?.kind==='sd' ? KT.item.name+' copy' : KT.item.name.replace(/^\d+-/,''));
+  let diskDirs = []; try { const kd = await findDirCI(sd.root, 'Kits'); if (kd) diskDirs = await listSubdirs(kd); } catch(e){ console.warn('Kits folder scan failed', e); }
+  const kFolders = [...new Set([...diskDirs, ...sd.kits.flatMap(k=>{ const p=relAfter(k.path,'Kits').split('/').slice(0,-1), o=[]; for(let i=1;i<=p.length;i++) o.push(p.slice(0,i).join('/')); return o; })].filter(Boolean))].sort();
+  const kDef = KT.item.src?.kind==='sd' ? relAfter(KT.item.path,'Kits').split('/').slice(0,-1).join('/') : '';
+  const r = await saveDialog('kit', kFolders, kDef, KT.item.isNew ? 'My Kit' : KT.item.src?.kind==='sd' ? KT.item.name+' copy' : KT.item.name.replace(/^\d+-/,''));
   if (!r) return;
   try {
-    const it = await writeSdFile(sd, ['Kits', r.name+'.skt'], kitBytes()); if (!it) return;
+    const it = await writeSdFile(sd, ['Kits', ...r.segs, r.name+'.skt'], kitBytes()); if (!it) return;
     if (!sd.kits.includes(it)) sd.kits.push(it);
     kitDirty.delete(itemKey(KT.item)); KT.item = null; rebuildLibrary(); await openKit(it);
-    flashNote(`Saved to the SD card as Kits/${r.name}.skt.`);
+    flashNote(`Saved to the SD card as Kits/${r.segs.length?r.segs.join('/')+'/':''}${r.name}.skt.`);
   } catch(e){ alert('Save failed: '+e.message); }
 };
 $('kitPreview').onchange = () => { KT.preview = $('kitPreview').checked; if (KT.preview) audio().resume(); };
@@ -4718,7 +4765,7 @@ return {Q, cloneEvents, parseFile, parseGP, parseGpif, parseMidiFile, buildTimel
 /* ================= PRACTICE (v1.09): play along with a drum score, get timing feedback ================= */
 const PR = (() => {
 const CLS_COL = {perfect: '#3fbf7f', good: '#9acd4a', ok: '#e5c13a', off: '#e5873a', miss: '#e05c5c', extra: '#c07be8', wrong: '#c07be8'};
-const ps = Object.assign({speed: 100, countIn: 1, metro: true, vol: 60, strict: 'normal', anyPad: false, offset: null, zoom: 22, learned: {}, laneOff: {}, ignoreRep: false, loop: false, sim: false, playMode: 'off', listenOnly: false, setHidden: false, noteMap: {}, noteInst: {}, mapOpen: false, kitId: null, kitMap: {}, laneNames: {}, showStaff: true, showRoll: true, showScore: true, showKit: true, vzoom: 100, mt: {sub: 'off', accent: true, sound: 'click', subVol: 60, on: 4, off: 0}}, store.get('pr', {}));
+const ps = Object.assign({noteCh: {}, hh2: {on: false, cc: null, val: 127, ch: null}, speed: 100, countIn: 1, metro: true, vol: 60, strict: 'normal', anyPad: false, offset: null, zoom: 22, learned: {}, dropped: {}, laneOff: {}, ignoreRep: false, loop: false, sim: false, playMode: 'off', listenOnly: false, setHidden: false, noteMap: {}, noteInst: {}, mapOpen: false, kitId: null, kitMap: {}, laneNames: {}, showStaff: true, showRoll: true, showScore: true, showKit: true, vzoom: 100, mt: {sub: 'off', accent: true, sound: 'click', subVol: 60, on: 4, off: 0, out: 'app', nBeat: 37, nAcc: 37}}, store.get('pr', {}));
 const save = () => store.set('pr', ps);
 const GMN = typeof GM !== 'undefined' ? GM : {};
 let srcBuf = null, score = null, ti = 0, tl = null, sess = null, fileName = '', learning = null, cal = null, scrub = 0, passes = [], lastHit = null;
@@ -4736,7 +4783,7 @@ const msg = (t, bad) => { const m = $('prMsg'); m.textContent = t || ''; m.style
 function laneOfIncoming(note){
   if (!tl) return null;
   for (const l of tl.lanes) if ((ps.learned[l.id] || []).includes(note)) return l.id;
-  for (const l of tl.lanes){ if (l.notes.includes(note)) return l.id; if (l.id === 'hhp' && note === cfg.chick) return l.id; }
+  for (const l of tl.lanes){ const dr = (ps.dropped && ps.dropped[l.id]) || []; if (dr.includes(note)) continue; if (l.notes.includes(note)) return l.id; if (l.id === 'hhp' && note === cfg.chick) return l.id; }
   return null;
 }
 /* custom names for instruments the score does not name ("Note 98"): saved per instrument, used everywhere */
@@ -4761,7 +4808,7 @@ function noteMapRows(){
 }
 let mapInstNote = null;                                            // note whose instrument is being chosen
 function renderNoteMap(){
-  if (!ps.noteInst) ps.noteInst = {}; if (!ps.noteMap) ps.noteMap = {}; if (!ps.laneNames) ps.laneNames = {};
+  if (!ps.dropped) ps.dropped = {}; if (!ps.noteInst) ps.noteInst = {}; if (!ps.noteMap) ps.noteMap = {}; if (!ps.laneNames) ps.laneNames = {};
   const open = !!ps.mapOpen; $('prMapBody').classList.toggle('hidden', !open); $('prMapArr').textContent = open ? '▾' : '▸';
   if (!open) return;
   const q = $('prMapFilter').value.trim().toLowerCase(), onlyUsed = $('prMapUsed').checked, host = $('prMapList'); host.innerHTML = '';
@@ -4812,12 +4859,16 @@ function renderLanes(){
   for (const l of tl.lanes){
     const el = document.createElement('div'); el.className = 'pr-lane' + (ps.laneOff[l.id] ? ' off' : '');
     const learned = ps.learned[l.id] || [];
-    const nts = esc(l.notes.concat(l.id === 'hhp' ? [cfg.chick] : []).join(' ')) + (learned.length ? ' ' + learned.map(n => `<b class="ln" data-n="${n}" title="Learned pad ${n}: click to forget it">${n} ×</b>`).join('') : '');
-    el.innerHTML = `<input type="checkbox" ${ps.laneOff[l.id] ? '' : 'checked'} title="Practise this instrument"><i style="background:${l.color}"></i><span class="nm" title="Click to rename">${esc(l.name)}</span><button class="ren" title="Rename this instrument">✎</button><span class="nt" title="MIDI notes accepted">${nts}</span><button class="lrn ${learning === l.id ? 'on' : ''}">${learning === l.id ? 'Done' : 'Learn'}</button>${learned.length ? '<button class="rst" title="Forget learned pads">×</button>' : ''}`;
+    const dropped = (ps.dropped && ps.dropped[l.id]) || [];
+    const defs = l.notes.concat(l.id === 'hhp' ? [cfg.chick] : []).filter(n => !dropped.includes(n));
+    const nts = defs.map(n => `<b class="ln df" data-n="${n}" title="Standard note ${n}: click to remove it from this instrument">${n} ×</b>`).join(' ') + (learned.length ? ' ' + learned.map(n => `<b class="ln" data-n="${n}" title="Learned pad ${n}: click to forget it">${n} ×</b>`).join('') : '');
+    el.innerHTML = `<input type="checkbox" ${ps.laneOff[l.id] ? '' : 'checked'} title="Practise this instrument"><i style="background:${l.color}"></i><span class="nm" title="Click to rename">${esc(l.name)}</span><button class="ren" title="Rename this instrument">✎</button><span class="nt" title="MIDI notes accepted">${nts}</span><button class="tst" title="Send this instrument to the module now (note ${soundNote({lane: l.id, midi: l.notes[0]})}) — to check that it sounds">▶</button><button class="lrn ${learning === l.id ? 'on' : ''}">${learning === l.id ? 'Done' : 'Learn'}</button>${(learned.length || dropped.length) ? '<button class="rst" title="Back to the standard notes (forget learned pads, restore removed notes)">↺</button>' : ''}`;
     el.querySelector('input').onchange = (e) => { ps.laneOff[l.id] = !e.target.checked; save(); dirtySnd(); newSession(); renderLanes(); };
+    el.querySelector('.tst').onclick = () => { const o = getOut(); const n = soundNote({lane: l.id, midi: l.notes[0]}); if (!o){ msg('Pick the module as MIDI output (top right) first.', true); return; } if (l.id === 'hihat') hhCC(o); try { o.send([0x90 | mch(n), n, 100]); o.send([0x80 | mch(n), n, 0], performance.now() + 120); } catch {} msg('Sent note ' + n + ' (' + l.name + ') to the module.'); };
     el.querySelector('.lrn').onclick = () => { learning = learning === l.id ? null : l.id; msg(learning ? 'Hit every pad that should count for ' + l.name + ' (e.g. Crash 1, 2, 3) — then press Done' : ''); renderLanes(); };
-    el.querySelectorAll('.ln').forEach(b => b.onclick = () => { const n = +b.dataset.n; ps.learned[l.id] = (ps.learned[l.id] || []).filter(x => x !== n); if (!ps.learned[l.id].length) delete ps.learned[l.id]; save(); renderLanes(); });
-    const r = el.querySelector('.rst'); if (r) r.onclick = () => { delete ps.learned[l.id]; save(); renderLanes(); };
+    el.querySelectorAll('.ln.df').forEach(b => b.onclick = () => { const n = +b.dataset.n; (ps.dropped[l.id] = ps.dropped[l.id] || []).push(n); save(); renderLanes(); });
+    el.querySelectorAll('.ln:not(.df)').forEach(b => b.onclick = () => { const n = +b.dataset.n; ps.learned[l.id] = (ps.learned[l.id] || []).filter(x => x !== n); if (!ps.learned[l.id].length) delete ps.learned[l.id]; save(); renderLanes(); });
+    const r = el.querySelector('.rst'); if (r) r.onclick = () => { delete ps.learned[l.id]; delete ps.dropped[l.id]; save(); renderLanes(); };
     const rn = () => renameLane(el.querySelector('.nm'), l, renderLanes); el.querySelector('.nm').onclick = rn; el.querySelector('.ren').onclick = rn;
     host.appendChild(el);
   }
@@ -5094,15 +5145,33 @@ async function prepareKit(R){
   if (!n){ msg('No sound could be loaded (are the samples in the open library?) — using the app sounds.', true); return false; }
   return true;
 }
+let hhHeld = false;                                          // is the “pedal down” note (21) being held on the module?
+function hhState(o, closed, when){                          // 21 note-on = pedal closed (no note-off while it stays closed); note-off = open again
+  if (!o || closed === hhHeld) return;
+  const n = ps.hhClosed != null ? ps.hhClosed : 21;
+  try { if (closed) o.send([0x90 | mch(n), n, 100], when); else o.send([0x80 | mch(n), n, 0], when); } catch {}
+  hhHeld = closed;
+}
+const mch = (n) => ((ps.noteCh && ps.noteCh[n]) || 10) - 1;           // MIDI channel (0-15) for a note: the one that pad sends on, otherwise 10
+function hhCC(o, when){                                      // pedal position for the hi-hat, sent before the note (the module picks open / closed from it)
+  return;                                                    // the module reads its own hi-hat pedal: a CC sent from here must not override it
+  const h = ps.hh2; if (!h || !h.on || !o) return;
+  const cc = h.cc != null ? h.cc : cfg.cc, ch = (h.ch != null ? h.ch : (L.ccCh || cfg.chan || 1)) - 1;
+  try { o.send([0xB0 | (ch & 15), cc, h.val], when); } catch {}
+}
 function soundNote(e){                                     // the module note to send for a score event
+  if (e.lane === 'hihat') return ps.hhOpen != null ? ps.hhOpen : 8;      // the hit itself: the module's hi-hat bow input note (8)
   const l = (ps.learned[e.lane] || [])[0];
-  return l != null ? l : (e.lane === 'hhp' ? cfg.chick : e.midi);
+  if (l != null) return l;
+  if (e.lane !== 'hhp' && seenNote[e.lane] != null) return seenNote[e.lane];       // the pad you actually hit for this instrument
+  if (e.lane === 'kick' && e.midi === 35) return 36;                       // GM “acoustic bass drum” 35 → the kick note modules use (36)
+  return e.lane === 'hhp' ? cfg.chick : e.midi;
 }
 /* how hard a score note is played: ghost notes soft, accents (> and ^ of the Guitar Pro file) louder */
 function noteVel(e){ return e.opt ? 55 : e.accent > 1 ? 127 : e.accent ? 118 : 85; }
 function triggerSound(e, real){
   const vel = noteVel(e);
-  if (run.sound === 'midi'){ const o = getOut(); if (o) { try { o.send([0x99, soundNote(e), vel], real); } catch {} } }
+  if (run.sound === 'midi'){ const o = getOut(); if (o) { try { const n = soundNote(e), v = Math.min(127, Math.round(vel * 100 / 85)); if (e.lane === 'hihat') hhState(o, e.midi !== 46, real - 4); o.send([0x90 | mch(n), n, v], real); o.send([0x80 | mch(n), n, 0], real + 80); (run.sent = run.sent || {})[n] = (run.sent[n] || 0) + 1; } catch {} } }
   else if (run.sound === 'kit' && e.kitPlan && e.kitPlan.length) playPlan(e.kitPlan, run.a0 + (real - run.p0) / 1000);
   else synthDrum(e.lane, e.midi, run.a0 + (real - run.p0) / 1000, vel);       // app sounds (also the fallback for instruments without a kit sound)
 }
@@ -5123,14 +5192,26 @@ function scheduler(){
     const real = run.t0 + (c.t - run.Tbegin) / run.speed;
     if (real > now + 140) break;
     const isCin = run.cn < run.cin.length;
-    if ((ps.metro || isCin) && (isCin || !c.mute) && real >= now - 30) click(run.a0 + (real - run.p0) / 1000, c.acc, c.sub);
+    if ((ps.metro || isCin) && (isCin || !c.mute) && real >= now - 30){
+      const o = ps.mt.out !== 'app' ? getOut() : null;
+      if (o){ const note = c.acc ? ps.mt.nAcc : ps.mt.nBeat, vel = c.acc ? 120 : c.sub ? Math.max(20, Math.round(ps.mt.subVol * 0.8)) : 85; try { o.send([0x90 | mch(note), note, vel], real); o.send([0x80 | mch(note), note, 0], real + 70); } catch {} }
+      if (!o || ps.mt.out === 'both') click(run.a0 + (real - run.p0) / 1000, c.acc, c.sub);     // no MIDI output connected: the click stays on the computer
+    }
     run.cn++;
   }
 }
 
 /* ---------- start / stop ---------- */
-async function play(listen){
-  listen = !!ps.listenOnly;                                  // “I'm not playing, just listen”: no scoring, the whole part sounds
+let armed = false;                                            // “Start when I hit a pad”: Play was pressed, waiting for the first note
+function setArmed(on){ armed = on; $('prPlay').classList.toggle('on', on); refreshButtons(); if (!on && $('prMsg').dataset.arm){ delete $('prMsg').dataset.arm; msg(''); } }
+async function play(listen, fromHit){
+  listen = !!ps.listenOnly;
+  if (armed && !fromHit) return;
+  if (!run && !fromHit && ps.waitHit && !listen && !ps.sim){
+    if (!tl){ msg('Load a score first.', true); return; }
+    if (!midi){ msg('MIDI is not connected — press “Connect MIDI” (top right) to start with a hit.', true); return; }
+    $('prMsg').dataset.arm = '1'; setArmed(true); msg('Waiting for your first hit… (Stop to cancel)'); return;
+  }                                  // “I'm not playing, just listen”: no scoring, the whole part sounds
   if (run){ if (run.paused) resume(); return; }
   if (learning){ learning = null; renderLanes(); }
   if (!tl){ msg('Load a score first.', true); return; }
@@ -5166,12 +5247,15 @@ function stop(reason){
   clearInterval(schedTimer); schedTimer = null;
   if (!run.listen) sess.finish(P, run.speed);
   cancelScheduled();
-  const wasListen = run.listen; run = null; setRunUi(false);
+  if (hhHeld) hhState(getOut(), false);                       // let the pedal go
+  const wasListen = run.listen, sentTxt = run.sent ? Object.entries(run.sent).map(([n, c]) => n + ' ×' + c).join(', ') : ''; run = null; setRunUi(false);
   if (ac && ac.state === 'suspended') ac.resume().catch(() => {});
   if (wasListen){ newSession(); scrub = range().from; syncScrub(); draw(); msg(''); return; }
   scrub = range().from; syncScrub();
   updateLive(); updateHeat(); showReport(); draw();
-  if (reason === 'end') msg('Finished.');
+  if (reason === 'end') showVerdict();
+  if (reason === 'end') msg('Finished.' + (sentTxt ? ' Sent to the module — note × times: ' + sentTxt : ''));
+  else if (sentTxt) msg('Sent to the module — note × times: ' + sentTxt);
 }
 function setRunUi(on){
   scrubEls(s => s.disabled = on || !tl);
@@ -5203,7 +5287,7 @@ function refreshButtons(){
   for (const id of PAUSE_OK) $(id).disabled = !!r && !waiting;             // these can be changed while paused (they apply when you press Play)
   $('prPlay').disabled = !!r && !waiting;                    // Play also resumes from pause
   $('prPause').disabled = !r || waiting;
-  $('prStop').disabled = !r;
+  $('prStop').disabled = !r && !armed; $('prPlay').disabled = $('prPlay').disabled || armed;
   $('prPlay').classList.toggle('on', !!r && !waiting && !r.listen);
   $('prPause').classList.toggle('on', waiting);
 }
@@ -5250,11 +5334,17 @@ function finishResume(){
 }
 
 /* ---------- hits ---------- */
-function onNote(now, note, vel){
+let mtLearn = null, mtLrnUi = null;
+function onNote(now, note, vel, ch){
+  if (armed){ if (note === cfg.chick) return; setArmed(false); play(false, true); return; }       // any pad starts it, except the hi-hat pedal chick (closing the pedal)                             // the first hit starts the lesson
+  if (ch && ps.noteCh[note] !== ch){ ps.noteCh[note] = ch; save(); }                  // remember on which MIDI channel each pad sends: the module answers on that channel
+  if (mtLearn){ const k = mtLearn; ps.mt[k] = note; $(k === 'nBeat' ? 'prMtNB' : 'prMtNA').value = note; if (k === 'nBeat' && ps.mt.nAcc === 37) { /* keep accent as is */ } mtLearn = null; save(); if (mtLrnUi) mtLrnUi(); msg('Click note set to ' + note + '.'); return; }
   if (cal){ cal.hits.push(now); return; }
   if (learning && tl){
     const id = learning, L = tl.lanes.find(l => l.id === id);                  // learning stays on: an instrument can be more than one pad (Crash 1, 2, 3…)
-    if (L.notes.includes(note) || (ps.learned[id] || []).includes(note)){ msg('Note ' + note + ' already counts for ' + L.name + ' — hit another pad, or press Done'); return; }
+    const drL = (ps.dropped && ps.dropped[id]) || [];
+    if (drL.includes(note)){ ps.dropped[id] = drL.filter(n => n !== note); if (!ps.dropped[id].length) delete ps.dropped[id]; save(); renderLanes(); msg('Note ' + note + ' counts for ' + L.name + ' again — hit another pad, or press Done'); return; }
+    if ((ps.learned[id] || []).includes(note)){ msg('Note ' + note + ' already counts for ' + L.name + ' — hit another pad, or press Done'); return; }
     for (const k in ps.learned) ps.learned[k] = ps.learned[k].filter(n => n !== note);
     (ps.learned[id] = ps.learned[id] || []).push(note);
     save(); renderLanes(); msg('Note ' + note + ' now counts for ' + L.name + ' (' + ps.learned[id].length + ' learned) — hit another pad, or press Done');
@@ -5263,8 +5353,10 @@ function onNote(now, note, vel){
   if (!run || run.paused || run.listen || ps.sim) return;
   handleHit(run.Tbegin + (now - (ps.offset || 0) - run.t0) * run.speed, note, vel);
 }
+const seenNote = {};                                            // last note played on each instrument (used to send the score to the module on the notes your pads really use)
 function handleHit(V, note, vel){
-  const laneId = laneOfIncoming(note), sp = run.speed, win = sess.win * sp;
+  const laneId = laneOfIncoming(note); if (laneId) seenNote[laneId] = note;
+  const sp = run.speed, win = sess.win * sp;
   if (laneId && ps.laneOff[laneId] && !ps.anyPad) return;
   if (V < run.startMs - win) return;                            // count-in noise
   let target = sess, P = V - run.pass * run.loopLen;
@@ -5281,7 +5373,7 @@ function handleHit(V, note, vel){
 }
 function showLast(h){
   lastHit = h; const big = $('prLastBig'), txt = $('prLastTxt');
-  if (h.cls === 'extra'){ big.textContent = 'extra'; big.style.color = CLS_COL.extra; txt.textContent = 'not in the score'; }
+  if (h.cls === 'extra'){ big.textContent = 'extra'; big.style.color = CLS_COL.extra; txt.textContent = h.lane ? 'not in the score' : 'note ' + h.midi + ' is not assigned to any instrument — press Learn on the row (Kick, Hi-hat…) and hit that pad'; }
   else if (h.cls === 'wrong'){ const w = tl.lanes.find(l => l.id === h.want.lane), got = tl.lanes.find(l => l.id === h.lane); big.textContent = 'wrong pad'; big.style.color = CLS_COL.wrong; txt.textContent = 'wanted ' + (w ? w.name : '?') + (got ? ', hit ' + got.name : ''); }
   else { big.textContent = fmtErr(h.err); big.style.color = CLS_COL[h.cls]; txt.textContent = (h.cls === 'perfect' ? 'perfect' : (h.err < 0 ? 'early' : 'late') + ' (' + h.cls + ')') + ' · ' + h.ev.laneInfo.name; }
 }
@@ -5863,6 +5955,16 @@ function updateHeat(){
 function hideReport(){ $('prReportCard').classList.add('hidden'); }
 let lastStats = null, lastRep = null;
 function laneName(id){ const l = tl.lanes.find(x => x.id === id); return l ? l.name : id; }
+const VERDICTS = [[98, 'PERFECT', '#3ddc84'], [92, 'GREAT', '#7bdc3d'], [80, 'GOOD', '#c8dc3d'], [65, 'OK', '#f0b23a'], [50, 'POOR', '#f07a3a'], [0, 'FAIL', '#ef4b4b']];
+function showVerdict(){                                      // big word over the page at the end of the lesson; goes away by itself
+  if (!lastStats || !lastStats.exp) return;
+  const pct = Math.round(lastStats.acc * 100), v = VERDICTS.find(x => pct >= x[0]) || VERDICTS[VERDICTS.length - 1];
+  let el = document.getElementById('prVerdict'); if (el) el.remove();
+  el = document.createElement('div'); el.id = 'prVerdict'; el.style.color = v[2];
+  el.innerHTML = '<b>' + v[1] + '</b><small>' + pct + '% ACCURACY</small>';
+  document.body.appendChild(el); setTimeout(() => { if (el.parentNode) el.remove(); }, 3700);
+  const big = $('prLastBig'); big.textContent = v[1]; big.style.color = v[2]; $('prLastTxt').textContent = pct + '% accuracy';      // the last-hit box now shows the result of the lesson instead of the last note
+}
 function showReport(){
   if (!tl || !sess) return;
   const R = range(), S = PRC.stats(sess, tl.bars, R.from, R.to, speed()); lastStats = S; lastRep = null;
@@ -5958,6 +6060,9 @@ function exportPdf(){
   };
   /* ---- page 1: summary ---- */
   newPage();
+  { const PDFCOL = {PERFECT: '#1c9c58', GREAT: '#4c9a1c', GOOD: '#9a9a12', OK: '#c98a14', POOR: '#d2641c', FAIL: '#d33b3b'};
+    const pv = S.exp ? (VERDICTS.find(x => Math.round(S.acc * 100) >= x[0]) || VERDICTS[VERDICTS.length - 1]) : null;
+    if (pv){ txt(pv[1], PW - M, y + 58, 70, PDFCOL[pv[1]] || '#111', 900, 'right'); txt(pc(S.acc) + ' accuracy', PW - M, y + 88, 20, '#52606d', 600, 'right'); } }
   txt('Practice report', M, y + 30, 32, '#111', 700); y += 46;
   const trackName = ($('prTrack').selectedOptions[0] || {}).textContent || '', b0 = tl.bars[fromBar()], b1 = tl.bars[toBar()];
   txt([fileName, trackName].filter(Boolean).join('  ·  '), M, y + 16, 17, '#52606d'); y += 28;
@@ -6197,6 +6302,7 @@ let sndPick = null;   // null = automatic (open while no kit is chosen)
 function openSounds(){ sndPick = null; sndInstLane = null; mapInstNote = null; renderNoteMap(); $('prSoundDlg').classList.remove('hidden'); renderSounds(); }
 async function renderSounds(){
   document.querySelectorAll('input[name=prSndMode]').forEach(r => r.checked = r.value === ps.playMode);
+  $('prHhBox').classList.toggle('hidden', ps.playMode !== 'midi');
   const box = $('prSndKit'); box.classList.toggle('hidden', ps.playMode !== 'kit');
   if (ps.playMode !== 'kit') return;
   const kitItem = (ps.kitId && ps.kitId !== '__open__') ? LIB.kits.find(it => kitKey(it) === ps.kitId) : null;
@@ -6287,9 +6393,18 @@ function bind(){
   const pops = [['prMtBtn', 'prMtPop']];
   pops.forEach(([b, p]) => { $(b).onclick = (e) => { e.stopPropagation(); const o = $(p).hidden; pops.forEach(([bb, pp]) => { $(pp).hidden = true; }); $(p).hidden = !o; }; });
   document.addEventListener('click', (e) => pops.forEach(([b, p]) => { if (!$(p).hidden && !$(p).contains(e.target)) $(p).hidden = true; }));
-  const mt = ps.mt;
+  const mt = ps.mt; if (!mt.out) mt.out = 'app'; if (mt.nBeat == null) mt.nBeat = 37; if (mt.nAcc == null) mt.nAcc = 37;
   $('prMtSound').value = mt.sound; $('prMtSub').value = mt.sub; $('prMtAcc').value = mt.accent ? '1' : '0'; $('prMtSubVol').value = mt.subVol; $('prMtOn').value = mt.on; $('prMtOff').value = mt.off;
   $('prMtSound').onchange = () => { mt.sound = $('prMtSound').value; mtChanged(); click(audioCtx().currentTime + 0.02, true); };
+  const showMtOut = () => { $('prMtNotes').style.display = mt.out === 'app' ? 'none' : ''; };
+  $('prMtOut').value = mt.out; $('prMtNB').value = mt.nBeat; $('prMtNA').value = mt.nAcc; showMtOut();
+  $('prMtOut').onchange = () => { mt.out = $('prMtOut').value; save(); showMtOut(); if (mt.out !== 'app' && !getOut()) msg('Pick the module as MIDI output (top right) to hear the click on it — until then it stays on the computer.', true); };
+  const nn = (id, k) => { $(id).onchange = () => { mt[k] = Math.max(0, Math.min(127, +$(id).value || 0)); $(id).value = mt[k]; save(); const o = getOut(); if (o && mt.out !== 'app'){ try { o.send([0x90 | mch(mt[k]), mt[k], 100]); o.send([0x80 | mch(mt[k]), mt[k], 0], performance.now() + 120); } catch {} } }; };
+  nn('prMtNB', 'nBeat'); nn('prMtNA', 'nAcc');
+  const lrnBtn = () => { $('prMtLB').classList.toggle('on', mtLearn === 'nBeat'); $('prMtLB').textContent = mtLearn === 'nBeat' ? 'hit a pad…' : 'Learn'; $('prMtLA').classList.toggle('on', mtLearn === 'nAcc'); $('prMtLA').textContent = mtLearn === 'nAcc' ? 'hit a pad…' : 'Learn'; };
+  mtLrnUi = lrnBtn;
+  $('prMtLB').onclick = () => { mtLearn = mtLearn === 'nBeat' ? null : 'nBeat'; lrnBtn(); };
+  $('prMtLA').onclick = () => { mtLearn = mtLearn === 'nAcc' ? null : 'nAcc'; lrnBtn(); };
   $('prMtSub').onchange = () => { mt.sub = $('prMtSub').value; mtChanged(); };
   $('prMtAcc').onchange = () => { mt.accent = $('prMtAcc').value === '1'; mtChanged(); };
   $('prMtSubVol').oninput = () => { mt.subVol = +$('prMtSubVol').value; save(); };
@@ -6324,11 +6439,32 @@ function bind(){
   const applySet = () => { $('prDrop').classList.toggle('collapsed', !!ps.setHidden); $('prSetArr').textContent = ps.setHidden ? '▸' : '▾'; };
   $('prSetHead').onclick = () => { ps.setHidden = !ps.setHidden; save(); applySet(); draw(); }; applySet();
   scrubEls(s => s.oninput = () => setScrub(+s.value));
+  $('prWaitHit').checked = !!ps.waitHit; $('prWaitHit').onchange = () => { ps.waitHit = $('prWaitHit').checked; save(); };
   $('prPlayMode').value = ps.playMode; $('prListenOnly').checked = ps.listenOnly;
   $('prPlayMode').onchange = () => { ps.playMode = $('prPlayMode').value; save(); dirtySnd(); if (ps.playMode === 'kit' && !ps.kitId) openSounds(); };
   $('prSounds').onclick = openSounds; $('prSndClose').onclick = $('prSndDone').onclick = () => $('prSoundDlg').classList.add('hidden');
   $('prSoundDlg').addEventListener('mousedown', (e) => { if (e.target === $('prSoundDlg')) $('prSoundDlg').classList.add('hidden'); });
   document.querySelectorAll('input[name=prSndMode]').forEach(r => r.onchange = () => { if (!r.checked) return; ps.playMode = r.value; $('prPlayMode').value = r.value; save(); dirtySnd(); renderSounds(); });
+  if (!ps.hh2) ps.hh2 = {on: false, cc: null, val: 127, ch: null};
+  const hhShow = () => { $('prHhOn').checked = !!ps.hh2.on; $('prHhCC').value = ps.hh2.cc != null ? ps.hh2.cc : cfg.cc; $('prHhVal').value = ps.hh2.val; $('prHhCh').value = ps.hh2.ch != null ? ps.hh2.ch : (L.ccCh || cfg.chan || 1); };
+  hhShow();
+  const hhNote = () => { const n = soundNote({lane: 'hihat', midi: 42}); $('prHhNote').value = ps.hhClosed != null ? ps.hhClosed : 21; $('prHhOpen').value = n; $('prHhNCh').value = mch(n) + 1; };
+  $('prHhNCh').onchange = () => { const c = Math.max(1, Math.min(16, +$('prHhNCh').value || 10)); ps.noteCh[+$('prHhNote').value] = c; ps.noteCh[+$('prHhOpen').value] = c; save(); };
+  const hhKit = () => {
+    $('prHhKit').innerHTML = '<span class="muted">Closed hi-hat = the pedal-down note (21) is sent and held, then the hit (8). Open hi-hat = the pedal-down note is released (note-off), then the hit. It is also released when the score stops. The pad’s “MIDI Out” note in the kit decides only what the module sends out, not what it plays.</span>';
+  };
+  hhNote(); hhKit(); $('prHhBtn').addEventListener('click', hhKit); $('prSounds').addEventListener('click', hhKit); $('prHhBtn').addEventListener('click', hhNote); $('prSounds').addEventListener('click', hhNote);
+  $('prHhNote').onchange = () => { const n = Math.max(0, Math.min(127, +$('prHhNote').value || 0)); ps.hhClosed = n; save(); renderLanes(); $('prHhNCh').value = mch(n) + 1; };
+  $('prHhOpen').onchange = () => { ps.hhOpen = Math.max(0, Math.min(127, +$('prHhOpen').value || 0)); save(); };
+  $('prHhOn').onchange = () => { ps.hh2.on = $('prHhOn').checked; save(); };
+  $('prHhCC').onchange = () => { ps.hh2.cc = Math.max(0, Math.min(127, +$('prHhCC').value || 0)); save(); };
+  $('prHhVal').onchange = () => { ps.hh2.val = Math.max(0, Math.min(127, +$('prHhVal').value || 0)); save(); };
+  $('prHhCh').onchange = () => { ps.hh2.ch = Math.max(1, Math.min(16, +$('prHhCh').value || 1)); save(); };
+  const hhBtn = () => $('prHhBtn').classList.toggle('hidden', ps.playMode !== 'midi'); hhBtn(); $('prPlayMode').addEventListener('change', hhBtn);
+  document.querySelectorAll('input[name=prSndMode]').forEach(r => r.addEventListener('change', hhBtn));
+  $('prHhBtn').onclick = () => { openSounds(); };
+  $('prHhTest').onclick = () => { const o = getOut(); if (!o){ msg('Pick the module as MIDI output (top right) first.', true); return; } hhState(o, true); const n = soundNote({lane: 'hihat', midi: 42}); setTimeout(() => { try { o.send([0x90 | mch(n), n, 100]); o.send([0x80 | mch(n), n, 0], performance.now() + 150); } catch {} }, 30); msg('Closed: pedal-down note ' + (ps.hhClosed != null ? ps.hhClosed : 21) + (true ? ' held (note-on)' : ' released (note-off)') + ', then hit note ' + n + '.'); };
+  $('prHhTestO').onclick = () => { const o = getOut(); if (!o){ msg('Pick the module as MIDI output (top right) first.', true); return; } hhState(o, false); const n = soundNote({lane: 'hihat', midi: 46}); setTimeout(() => { try { o.send([0x90 | mch(n), n, 100]); o.send([0x80 | mch(n), n, 0], performance.now() + 150); } catch {} }, 30); msg('Open: pedal-down note ' + (ps.hhClosed != null ? ps.hhClosed : 21) + (false ? ' held (note-on)' : ' released (note-off)') + ', then hit note ' + n + '.'); };
   $('prListenOnly').onchange = () => { ps.listenOnly = $('prListenOnly').checked; if (ps.listenOnly && ps.playMode === 'off'){ ps.playMode = 'synth'; $('prPlayMode').value = 'synth'; document.querySelectorAll('input[name=prSndMode]').forEach(r => r.checked = r.value === 'synth'); dirtySnd(); } save(); };
   const applyShow = () => {
     if (!ps.showStaff && !ps.showRoll) ps.showRoll = true;                 // keep at least one view
@@ -6341,7 +6477,7 @@ function bind(){
   $('prShowScore').onclick = () => { ps.showScore = !ps.showScore; applyShow(); };
   $('prShowKit').onclick = () => { ps.showKit = !ps.showKit; applyShow(); };
   applyShow();
-  $('prPlay').onclick = () => play(); $('prStop').onclick = () => stop('user'); $('prPause').onclick = pause;
+  $('prPlay').onclick = () => play(); $('prStop').onclick = () => { if (armed){ setArmed(false); return; } stop('user'); }; $('prPause').onclick = pause;
   const tc = $('prLcdTempo').parentElement, bc = $('prLcdBar').parentElement;
   tc.classList.add('edit'); bc.classList.add('edit'); tc.title = 'Click to type a tempo (BPM)'; bc.title = 'Click to type a bar number';
   const sc = $('prLcdSpd'); sc.style.cursor = 'text'; sc.title = 'Click to type a speed (percent of the written tempo)'; sc.onclick = (e) => { e.stopPropagation(); if (e.target.tagName !== 'INPUT') editSpeed(); };
