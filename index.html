@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Strike Companion v1.11</title>
+<title>Strike Companion v1.12</title>
 <style>
 :root{
   --bg:#111418; --panel:#191d23; --panel2:#20252c; --line:#2c333c; --text:#e6e9ee; --muted:#8b95a3;
@@ -546,7 +546,7 @@ input.pr-ren{width:96px;font:inherit;font-weight:600;background:#0a0d12;color:#f
 <body>
 
 <div class="menubar" id="menubar">
-  <span class="brand">Strike <b>Companion</b> <small style="color:#888;font-weight:500">v1.11</small></span>
+  <span class="brand">Strike <b>Companion</b> <small style="color:#888;font-weight:500">v1.12</small></span>
   <div class="menu" data-menu="file"><button>File</button><div class="drop">
     <button data-cmd="new">New<span class="k">Ctrl+N</span></button>
     <button data-cmd="open">Open file (.skt / .sin)…<span class="k">Ctrl+O</span></button>
@@ -1832,7 +1832,7 @@ async function runCmd(c){
     case 'checksizes': setView('kits'); openKitBrowser(); $('kitCheckAll').click(); break;
     case 'settings': $('btnSettings').click(); break;
     case 'help-connect': info(CONNECT_HELP); break;
-    case 'about': info('<h2 style="margin-top:0">Strike Companion v1.11</h2><p>A free, unofficial browser editor for the Alesis Strike / Strike Pro drum module: Kit Editor, Instrument Editor, factory content update browser, plus live MIDI tools (hi-hat monitor, MIDI-OX log analysis, trigger settings). Runs entirely in Chrome or Edge; nothing is uploaded anywhere.</p><p class="small"><b>Not affiliated with, endorsed by or supported by Alesis or inMusic.</b> Alesis and Strike are trademarks of their owners. File formats were worked out independently for compatibility.</p><p class="small muted">Use at your own risk. Preset (internal) content is never written; user kits and instruments are saved to the SD card. Keep a backup copy of your SD card and of your trigger settings (.syx) before making changes.</p>'); break;
+    case 'about': info('<h2 style="margin-top:0">Strike Companion v1.12</h2><p>A free, unofficial browser editor for the Alesis Strike / Strike Pro drum module: Kit Editor, Instrument Editor, factory content update browser, plus live MIDI tools (hi-hat monitor, MIDI-OX log analysis, trigger settings). Runs entirely in Chrome or Edge; nothing is uploaded anywhere.</p><p class="small"><b>Not affiliated with, endorsed by or supported by Alesis or inMusic.</b> Alesis and Strike are trademarks of their owners. File formats were worked out independently for compatibility.</p><p class="small muted">Use at your own risk. Preset (internal) content is never written; user kits and instruments are saved to the SD card. Keep a backup copy of your SD card and of your trigger settings (.syx) before making changes.</p>'); break;
   }
 }
 const CONNECT_HELP = `<h2 style="margin-top:0">How the drives are found</h2>

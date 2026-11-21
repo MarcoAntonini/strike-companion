@@ -1,5 +1,16 @@
 # Changelog
 
+## v1.12 — contributed by Marco Antonini (PRs #1 and #2)
+- New Practice mode (PRACTICE button, F3): load a Guitar Pro (.gp3 .gp4 .gp5 .gpx .gp) or MIDI drum score and play along. Shows drum notation, a piano roll and a kit picture that lights up as pieces are played.
+- Hit scoring with Easy / Normal / Pro strictness, latency calibration, per-bar accuracy heat-map, final report and progress trend.
+- Transport with count-in, looping a selected section, "Loop the worst bars", and a metronome (sounds, subdivisions, accents, silent bars; click from the computer, the module or both).
+- The score can be played with app sounds, with a kit's sounds, or on the module over MIDI (including the hi-hat pedal). Simulated-player demo and listen-only mode.
+- Export a played lesson as .zip (score + results JSON) or as a PDF with notes coloured by result; load a lesson back later.
+- Kit picture: piece names can be dragged and resized; "Pedal closed" option to hear closed hi-hat sounds without the module.
+- Save As: folder picker listing the SD card's instrument folders; choose where exported kits are saved.
+- File menu: save / load app settings (kit layout, names, practice options) to a file; disconnect all drives.
+- Fixed some MIDI errors in practice mode.
+
 ## v1.11
 - Kit Editor: the kit picture sits in a column on the right (drag its edge to resize), pad settings use the space on the left.
 
