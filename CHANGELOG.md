@@ -1,5 +1,36 @@
 # Changelog
 
+## v1.56 — with Strike MOD FW 0.9.1-beta (2026-11-25)
+- **New: faster instrument changes (memory fix).** The stock firmware never frees sample memory: every instrument selected, even while browsing, is added, and when the 200 MB fills up the whole kit is wiped and reloaded (up to ~2 minutes from SD). Now only the sounds the kit no longer uses are dropped and the rest are moved together; the kit stays playable and only the new instrument loads. Tested on a 193 MB SD kit.
+- LOADING box: the bar now restarts when you switch kits while one is still loading, and it is red until the kit is playable (soft hits available), then turns blue.
+- LOADING box fixes: it always closes when the kit has finished loading (an old copy of the box could come back frozen, e.g. "128/195 MB", after the load had finished), and it no longer leaves a faint outline in fading pad glows.
+- MOD label now reads "MOD 0.9.1 BETA".
+- Strike Companion: Kit Screen Creator Undo / Redo / Reset; trigger-chip update can be unticked; default updater folder Documents\Strike Updater; Tools → Module debug log (for test firmware); the patcher notes when all features are on (the combination tried on a module, minimal testing).
+
+## v1.38 — with Strike MOD FW 0.9.0-beta (2026-11-23)
+First public beta. Based on Alesis Strike firmware v1.5.
+
+**Firmware features**
+- Hi-hat page: OPEN / CLOSED calibration knobs, RESET (F1), CAL / OUT meters. Calibration is re-sent to the trigger chip at start-up.
+- Trigger chip (Patch 7): pedal calibration maths and hi-hat choke fixes.
+- Pad trigger pages: CAL / OUT meters with peak hold.
+- Custom kit screen from the Kit Screen Creator (up to 23 hit glows). The standard layout matches the stock screen.
+- LOADING box: "Preparing kit…", then loaded / total MB, "Initial samples loaded…", "Loading rest of samples…". It stays until the whole kit is loaded.
+- Kick Rim (K2H) on the VOICE (Note Chase) and TRIGGER pages.
+- "MOD FW 0.9 BETA" label at the top right of the home screen.
+
+**Strike Companion**
+- Firmware patcher: the trigger chip update can be unticked (this also unticks the HiHat page knobs, which need it).
+- Firmware patcher: the default updater folder path is Documents\Strike Updater.
+- Firmware patcher: builds into the updater folder, keeps the originals, and can put the originals back.
+- Kit Screen Creator: Undo / Redo (Ctrl+Z / Ctrl+Y), Reset to the standard kit, presets (Standard kit; Example: 7 cymbals), info help, Save for patching. Without a saved layout, the patcher uses the standard layout.
+- Kit Editor follows the Kit Screen Creator layout.
+
+**Known limits:** tested on one Strike Pro only; SD card load time unchanged (hardware limited).
+
+## v1.13 – v1.37
+- Development builds: firmware research tools, the Kit Screen Creator, the firmware patcher and the hi-hat calibration work that became Strike MOD FW 0.9.0-beta.
+
 ## v1.12 — contributed by Marco Antonini (PRs #1 and #2)
 - New Practice mode (PRACTICE button, F3): load a Guitar Pro (.gp3 .gp4 .gp5 .gpx .gp) or MIDI drum score and play along. Shows drum notation, a piano roll and a kit picture that lights up as pieces are played.
 - Hit scoring with Easy / Normal / Pro strictness, latency calibration, per-bar accuracy heat-map, final report and progress trend.
