@@ -494,6 +494,15 @@ button.tp#prStop{color:#e6e9ee}
 .pr-lane .nt b.ln{cursor:pointer;color:#8fb4ff;font-weight:600;padding:0 2px;border-radius:3px}
 .pr-lane .nt b.ln:hover{background:#3a1b1d;color:#ff8a85;text-decoration:line-through}
 
+/* lane cards: header row (name + buttons) then the note chips underneath, full width */
+.pr-lanes{grid-template-columns:repeat(auto-fill,minmax(320px,1fr))!important;align-items:start}
+.pr-lane{flex-wrap:wrap!important;align-items:center!important;padding:8px 10px!important;row-gap:8px}
+.pr-lane .nm{flex:1 1 auto!important;min-width:0!important}
+.pr-lane .nt{order:5;flex:0 0 100%!important;display:flex;flex-wrap:wrap;gap:5px;line-height:1.4!important;font:12px var(--mono)}
+.pr-lane .nt:empty{display:none}
+.pr-lane .nt b.ln{display:inline-flex!important;align-items:center;gap:5px;white-space:nowrap;margin:0!important;padding:2px 9px!important;background:#1b2740!important;border:1px solid #2f4468!important;border-radius:999px!important;color:#8fb4ff;font-weight:600;text-decoration:none!important}
+.pr-lane .nt b.ln:hover{background:#4a2023!important;border-color:#a04448!important;color:#ffb3af!important;text-decoration:none!important}
+.pr-lane button{white-space:nowrap}
 .pr-headrow{display:flex;align-items:baseline;gap:14px;margin-bottom:0}
 .pr-headrow #prMsg{flex:1;text-align:right;min-width:0;line-height:1.3}
 
@@ -991,7 +1000,7 @@ input.pr-ren{width:96px;font:inherit;font-weight:600;background:#0a0d12;color:#f
 
   <div class="card hidden" id="prReportCard">
     <div class="row" style="justify-content:space-between;margin-bottom:8px"><h2 style="margin:0">Where you went wrong</h2>
-      <div class="row"><button id="prLesson" title="Save the whole lesson as one .zip: the original Guitar Pro / MIDI file plus a JSON with every note right/wrong and the statistics. Load it again with “Load lesson…”">Export lesson (JSON + score)</button><button id="prPdf" title="Save a PDF with the statistics and the score, notes coloured by result">Export PDF</button><button id="prRetry">Play again</button><button id="prWorst">Loop the worst bars</button></div></div>
+      <div class="row"><button id="prLesson" title="Save the whole lesson as one .zip: the original Guitar Pro / MIDI file plus a JSON with every note right/wrong and the statistics. Load it again with “Load lesson…”">Export lesson (JSON + score)</button><button id="prPdf" title="Save a PDF with the statistics and the score, notes coloured by result">Export PDF</button></div></div>
     <div id="prReport"></div>
     <canvas id="prTrend" style="height:120px;margin-top:10px"></canvas>
     <div class="small muted" id="prTrendLbl"></div>
@@ -1194,6 +1203,13 @@ input.pr-ren{width:96px;font:inherit;font-weight:600;background:#0a0d12;color:#f
 
 <div class="statusbar"><span id="statusText">Ready</span><span id="statusRight" class="muted"></span></div>
 
+<dialog id="dlgAsk">
+  <form method="dialog" id="askForm">
+    <p id="askMsg" style="margin-top:0;white-space:pre-wrap;max-width:460px"></p>
+    <input type="text" id="askIn" style="width:100%" autocomplete="off">
+    <div class="row" style="justify-content:flex-end;margin-top:14px"><button type="button" id="askCancel">Cancel</button><button type="submit" id="askOk" class="primary">OK</button></div>
+  </form>
+</dialog>
 <dialog id="dlgSave">
   <h2 style="margin-top:0" id="saveTitle">Save to SD card</h2>
   <div class="form">
@@ -2153,7 +2169,7 @@ setTimeout(() => {
   if (!$('dbgFolder')) return;
   $('dbgFolder').onclick = () => DBG.folder();
   $('dbgClear').onclick = () => { if (confirm('Clear the log on screen (and in the file)?')) DBG.clear(); };
-  $('dbgMark').onclick = () => { const t = prompt('Note to add to the log (e.g. "changed snare rim instrument now"):'); if (t) DBG.note(t); };
+  $('dbgMark').onclick = async () => { const t = await askText('Note to add to the log (e.g. "changed snare rim instrument now"):'); if (t) DBG.note(t); };
 }, 0);
 function onMidi(ev){
   const d = ev.data; if (!d || !d.length) return;
@@ -2920,6 +2936,17 @@ const writableSources = () => LIB.sources.filter(s=>s.root);
 /* Only user content on the SD card is writable (the module keeps factory kits and instruments read-only). */
 const sdSource = () => LIB.sources.find(s=>s.kind==='sd' && s.root) || null;
 const BAD_NAME = /[\\/:*?"<>|]/;
+/* in-page replacement for window.prompt() (Electron has no prompt()) — resolves to the text, or null on cancel */
+function askText(msg, def){
+  return new Promise(res => {
+    const d = $('dlgAsk'); $('askMsg').textContent = msg; $('askIn').value = def == null ? '' : def;
+    let out = null;
+    $('askForm').onsubmit = () => { out = $('askIn').value; };
+    $('askCancel').onclick = () => d.close();
+    d.onclose = () => res(out);
+    d.showModal(); $('askIn').focus(); $('askIn').select();
+  });
+}
 function saveDialog(kind, folders, defFolder, defName){
   return new Promise(res => {
     const dlg = $('dlgSave'), isInst = kind==='instrument';
@@ -3945,8 +3972,8 @@ function setLayerRange(Lr, lo, hi){
   if (IT.selLayer===oldKey) IT.selLayer = newKey;
   structChanged();
 }
-$('layerAdd').onclick = () => {
-  const r = parseRange(prompt('Pedal range for the new layer (0 = fully open, 127 = closed), e.g. 40-80:', ''));
+$('layerAdd').onclick = async () => {
+  const r = parseRange(await askText('Pedal range for the new layer (0 = fully open, 127 = closed), e.g. 40-80:', ''));
   if (!r) return;
   if (layersOf().some(l=>l.lo===r[0] && l.hi===r[1])) return alert('A layer with that range already exists.');
   IT.pendLayers.push({lo:r[0], hi:r[1]}); IT.selLayer = r[0]+'-'+r[1]; IT.selRange = null;
@@ -3994,10 +4021,10 @@ function setRange(R, lo, hi){
   for (const i of R.zones){ IT.inst.zones[i][3]=lo; IT.inst.zones[i][4]=hi; }
   IT.selRange = lo+'-'+hi; structChanged();
 }
-$('rangeAdd').onclick = () => {
+$('rangeAdd').onclick = async () => {
   const L0 = curLayer(); if (!L0) return;
   const rs = rangesOf(L0.key); const top = rs.length ? Math.max(...rs.map(r=>r.hi)) : 0;
-  const r = parseRange(prompt('Velocity range (1–127), e.g. 1-60:', top<127 ? `${top+1}-127` : '1-127')); if (!r || r[0]<1) return;
+  const r = parseRange(await askText('Velocity range (1–127), e.g. 1-60:', top<127 ? `${top+1}-127` : '1-127')); if (!r || r[0]<1) return;
   if (rs.some(x=>x.lo===r[0] && x.hi===r[1])) return alert('That range already exists.');
   (IT.pendRanges[L0.key] ||= []).push({lo:r[0], hi:r[1]}); IT.selRange = r[0]+'-'+r[1];
   renderRanges(); renderSamples(); drawZmap();
@@ -4083,7 +4110,7 @@ $('rangeAuto').onclick = () => autoMap();
 async function autoMap(nQuick){
   const refs = [...IT.ticks]; const L0 = curLayer(); if (!L0) return;
   if (!refs.length) return alert('Tick the samples to map in the browser first (all dynamics of one sound, e.g. every snare-centre hit).');
-  const n = nQuick || parseInt(prompt(`AUTO-MAP\n\nVelocity ranges for ${refs.length} sample(s)?\nThey are sorted by loudness (first 0.3 s) and spread from quiet (low velocity) to loud. Ranges that get no sample are left out.`, String(Math.min(refs.length, 8))), 10);
+  const n = nQuick || parseInt(await askText(`AUTO-MAP\n\nVelocity ranges for ${refs.length} sample(s)?\nThey are sorted by loudness (first 0.3 s) and spread from quiet (low velocity) to loud. Ranges that get no sample are left out.`, String(Math.min(refs.length, 8))), 10);
   if (!(n>=1 && n<=127)) return;
   if (!nQuick && L0.zones.length && !confirm(`This replaces the ${L0.zones.length} sample(s) currently in “${L0.name}”. Continue?`)) return;
   if (IT.inst.zones.length - L0.zones.length + refs.length > 255) return alert('More than 255 zones in total.');
@@ -4165,10 +4192,10 @@ function renderZones(){
 }
 $('zRaw').onchange = renderZones;
 $('zSelAll').onclick = () => { IT.sel = IT.sel.size===IT.inst.zones.length ? new Set() : new Set(IT.inst.zones.map((_,i)=>i)); renderZones(); };
-$('zBulk').onclick = () => {
+$('zBulk').onclick = async () => {
   if (!IT.sel.size) return alert('Tick zones in the table first.');
-  const v = prompt(`Velocity range for ${IT.sel.size} zone(s), e.g. 1-127 (blank = keep):`, '');
-  const p = prompt('Hi-hat pedal range, e.g. 0-16 (blank = keep):', '');
+  const v = await askText(`Velocity range for ${IT.sel.size} zone(s), e.g. 1-127 (blank = keep):`, '');
+  const p = await askText('Hi-hat pedal range, e.g. 0-16 (blank = keep):', '');
   const vr = parseRange(v), pr = parseRange(p);
   if ((v && !vr) || (p && !pr)) return alert('Ranges look like 1-127, low to high, max 127.');
   for (const i of IT.sel){ const z = IT.inst.zones[i]; if (vr){ z[3]=vr[0]; z[4]=vr[1]; } if (pr){ z[10]=pr[0]; z[11]=pr[1]; } }
@@ -4267,7 +4294,7 @@ $('tPlay').onclick = async () => {
 $('zImport').onchange = async (e) => {
   const files = [...e.target.files]; e.target.value=''; if (!files.length) return;
   const sd = sdSource(); if (!sd) return alert('Imported samples go onto the SD card, so open the SD card first.');
-  const folder = prompt('IMPORT SAMPLES\n\nSelect a folder to import samples into (inside Samples/ on the SD card):', 'User/' + (IT.item.isNew ? (files[0].name.replace(/\.[^.]+$/,'').replace(/[\s_-]*\d+$/,'') || 'My Instrument') : IT.item.name));
+  const folder = await askText('IMPORT SAMPLES\n\nSelect a folder to import samples into (inside Samples/ on the SD card):', 'User/' + (IT.item.isNew ? (files[0].name.replace(/\.[^.]+$/,'').replace(/[\s_-]*\d+$/,'') || 'My Instrument') : IT.item.name));
   if (!folder){ IT.quick = false; return; }
   let dir = await sd.root.getDirectoryHandle('Samples', {create:true});
   for (const part of folder.split('/').filter(Boolean)) dir = await dir.getDirectoryHandle(part, {create:true});
@@ -5609,8 +5636,8 @@ function onNote(now, note, vel, ch){
   handleHit(run.Tbegin + (now - (ps.offset || 0) - run.t0) * run.speed, note, vel);
 }
 const seenNote = {};                                            // last note played on each instrument (used to send the score to the module on the notes your pads really use)
-function handleHit(V, note, vel){
-  const laneId = laneOfIncoming(note); if (laneId) seenNote[laneId] = note;
+function handleHit(V, note, vel, forceLane){
+  const laneId = forceLane || laneOfIncoming(note); if (laneId) seenNote[laneId] = note;
   const sp = run.speed, win = sess.win * sp;
   if (laneId && ps.laneOff[laneId] && !ps.anyPad) return;
   if (V < run.startMs - win) return;                            // count-in noise
@@ -5635,14 +5662,21 @@ function showLast(h){
 
 /* ---------- simulated player ---------- */
 function gauss(){ let u = 0, v = 0; while (!u) u = Math.random(); v = Math.random(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); }
+/* a note that the app itself maps back to this row (learned pads and removed notes respected), so the simulated hits count like real ones */
+function simNote(laneId){
+  const l = tl.lanes.find(x => x.id === laneId); if (!l) return null;
+  const cand = [...((ps.learned && ps.learned[laneId]) || []), ...l.notes];
+  for (const n of cand) if (laneOfIncoming(n) === laneId) return n;
+  return l.notes[0];
+}
 function simFill(p){
   const R = range(), q = run.simQ;
   for (const e of tl.events){
     if (e.t < R.from || e.t >= R.to || ps.laneOff[e.lane] || e.opt && Math.random() < 0.5) continue;
     if (Math.random() < 0.05) continue;
     const sd = Math.random() < 0.12 ? 75 : 22;
-    q.push({V: e.t + p * run.loopLen + (gauss() * sd - 6) * run.speed, note: tl.lanes.find(l => l.id === e.lane).notes[0], vel: Math.max(5, Math.min(127, Math.round(noteVel(e) * 0.95 + gauss() * 9)))});
-    if (Math.random() < 0.015){ const l = tl.lanes[Math.floor(Math.random() * tl.lanes.length)]; q.push({V: e.t + p * run.loopLen + 120 * run.speed, note: l.notes[0]}); }
+    q.push({V: e.t + p * run.loopLen + (gauss() * sd - 6) * run.speed, note: simNote(e.lane), lane: simNote(e.lane) && laneOfIncoming(simNote(e.lane)) !== e.lane ? e.lane : null, vel: Math.max(5, Math.min(127, Math.round(noteVel(e) * 0.95 + gauss() * 9)))});
+    if (Math.random() < 0.015){ const l = tl.lanes[Math.floor(Math.random() * tl.lanes.length)]; q.push({V: e.t + p * run.loopLen + 120 * run.speed, note: simNote(l.id)}); }
   }
   q.sort((a, b) => a.V - b.V);
 }
@@ -5662,7 +5696,7 @@ function engine(now){
       sess = run.next; run.next = null; run.pass++;
     }
   }
-  while (run.simQ.length && run.simQ[0].V <= V){ const q = run.simQ.shift(); handleHit(q.V, q.note, q.vel); }
+  while (run.simQ.length && run.simQ[0].V <= V){ const q = run.simQ.shift(); handleHit(q.V, q.note, q.vel, q.lane); }
   if (run.loop && run.listen) run.pass = Math.max(0, Math.floor((V - run.startMs) / run.loopLen));
   const P = V - run.pass * run.loopLen;
   if (!run.listen) sess.tick(P, sp);                          // listening only: nothing is scored, so no note turns into a miss
@@ -6261,7 +6295,6 @@ function showReport(){
     ${passes.length ? `<h3>Loop passes</h3><div class="det">${passes.map(p => `Pass ${p.n}: <b>${pc(p.acc)}</b> (${p.miss} missed, avg ${fmtErr(p.mean)})`).join(' · ')}</div>` : ''}`;
   $('prReport').innerHTML = html; $('prReportCard').classList.remove('hidden');
   $('prReport').querySelectorAll('tr.go').forEach(tr => tr.onclick = () => { const k = +tr.dataset.k; syncScrub(); setScrub(tl.bars[k].startMs + 1); $('prRoll').scrollIntoView({behavior: 'smooth', block: 'center'}); });
-  $('prWorst').disabled = !worst.length; $('prWorst').onclick = () => { const k = worst[0].k; $('prFrom').value = Math.max(1, k); $('prTo').value = Math.min(tl.bars.length, k + 2); ps.loop = true; $('prLoop').checked = true; save(); updateBpm(); newSession(); hideReport(); draw(); play(); };
   drawTrend(bars);
 }
 /* ---------- PDF export: statistics + the notation with notes coloured by result ---------- */
@@ -6746,7 +6779,6 @@ function bind(){
   $('prPassClose').onclick = () => $('prPassDlg').classList.add('hidden'); $('prPassDlg').addEventListener('mousedown', (e) => { if (e.target === $('prPassDlg')) $('prPassDlg').classList.add('hidden'); });
   $('prPdf').onclick = exportPdf; $('prLesson').onclick = exportLesson;
   $('prLessonBtn').onclick = () => $('prLessonFile').click(); $('prLessonFile').onchange = (e) => { const f = e.target.files[0]; e.target.value = ''; if (f) importLesson(f); };
-  $('prRetry').onclick = () => { newSession(); hideReport(); passes = []; scrub = range().from; syncScrub(); draw(); play(); };
   const roll = $('prRoll'), staff = $('prStaff');
   let downAt = null;
   roll.onmousedown = staff.onmousedown = (e) => { downAt = [e.clientX, e.clientY]; if (canScrub()) dragX = e.clientX; };
