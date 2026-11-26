@@ -527,6 +527,7 @@ button.tp.mini.mod{color:var(--accent)}
 #prZoomVal{font:600 12px var(--mono);color:#aab4c2;min-width:36px;text-align:right}
 
 #prKitWrap{margin-top:6px;border:1px solid var(--line);border-radius:8px;background:radial-gradient(ellipse at 50% 30%,#222a36,#10151b);padding:4px 0}
+#prKitSvg{min-height:min(42vh,330px)}
 #prKitSvg svg{display:block;margin:0 auto;height:min(42vh,330px);max-width:100%}
 #prKitSvg .lbl{fill:#e6e9ee;font-weight:700;text-anchor:middle;paint-order:stroke;stroke:#11161c;stroke-width:4px;pointer-events:none}
 
@@ -3327,6 +3328,7 @@ function kitZones(L){
   }
   return Z.filter(z => { if (used.has(z.pad)) return false; used.add(z.pad); return true; });
 }
+window.kitZonesOf = kitZones;   // the Practice script has its own `kitZones` variable, so it reads this one
 function drawKitSvg(){
   if (!KT.kit) { $('kitSvg').innerHTML = ''; return; }
   const L = screenLayout(); if (!L || typeof KSC === 'undefined') return;
@@ -5852,30 +5854,34 @@ function zoneFor(lane, midi){
   return null;
 }
 function lightZone(lane, midi, col){ const z = zoneFor(lane, midi); if (z) kitLit[z] = {t0: performance.now(), col}; }
-function buildKitSvg(){
-  let g = '', labels = '';
-  const zone = (id, part, d, rect) => `<${rect ? 'rect' : 'path'} data-id="${id}" data-part="${part}" ${rect ? d + ' rx="6"' : 'd="' + d + '" fill-rule="evenodd"'} fill="${KIT_BASE[part]}" stroke="#11161c" stroke-width="2"/>`;
-  const rank = (p) => (p.kind === 'kick' || p.kind === 'pedal') ? 0 : p.kind === 'drum' ? 1 : p.kind === 'single' ? 2 : 3;
-  for (const p of pieces().map((q, i) => [q, i]).sort((a, b) => rank(a[0]) - rank(b[0]) || a[1] - b[1]).map(a => a[0])){
-    if (p.hide) continue;
-    const {x, y, r} = p; let inner = '';
-    if (p.kind === 'pedal') inner = zone(p.z.pad, 'pad', `x="${x - r}" y="${y - r * 0.6}" width="${2 * r}" height="${r * 1.2}"`, true);
-    else if (p.kind === 'kick') inner = zone(p.z.head, 'kick', ringPath(x, y, r));
-    else if (p.kind === 'drum') inner = p.z.rim ? zone(p.z.rim, 'rim', ringPath(x, y, r, r - 11)) + zone(p.z.head, 'head', ringPath(x, y, r - 11)) : zone(p.z.head, 'head', ringPath(x, y, r));
-    else if (p.kind === 'single') inner = zone(p.z.all, 'all', ringPath(x, y, r));
-    else { inner = zone(p.z.edge, 'edge', ringPath(x, y, r, r * 0.7)) + zone(p.z.bow, 'bow', ringPath(x, y, r * 0.7, p.z.bell ? r * 0.26 : 0)); if (p.z.bell) inner += zone(p.z.bell, 'bell', ringPath(x, y, r * 0.26)); }
-    g += '<g>' + inner + '</g>';
-    if (!p.lh) labels += `<text class="lbl" x="${x + (p.ldx || 0)}" y="${(p.kind === 'pedal' ? y + r * 0.6 + 22 : y + r + 22) + (p.ldy || 0)}" style="font-size:${p.lfs || 22}px">${esc(p.label)}</text>`;
+let kitPicKey = '', kitWhy = '';
+function buildKitSvgScreen(){          // the Kit Screen Creator picture (same as the Kit Editor), with transparent zones that light up
+  if (typeof KSC === 'undefined' || typeof screenLayout !== 'function'){ kitWhy = 'Kit Screen Creator not available'; return false; }
+  const L = screenLayout(); if (!L || !L.pieces){ kitWhy = 'no Kit Screen Creator layout found'; return false; }
+  const key = JSON.stringify(L), url = KPIC.key === key ? KPIC.url : '';
+  if (!url){ kitPicture(L).then(() => { kitSig = ''; }); }
+  if (!url){ $('prKitSvg').innerHTML = ''; kitZones = {}; return true; }     // blank until the picture is ready (no flash of another drawing)
+  let g = `<image href="${url}" x="0" y="0" width="480" height="272"/>`;
+  const Z = window.kitZonesOf(L);
+  for (const z of [...Z.filter(z => z.rect), ...Z.filter(z => !z.rect)]){
+    const id = z.pad.padEnd(4, ' ');
+    g += z.rect ? `<rect data-id="${id}" data-part="ov" x="${z.rect[0].toFixed(1)}" y="${z.rect[1].toFixed(1)}" width="${z.rect[2].toFixed(1)}" height="${z.rect[3].toFixed(1)}" rx="2" fill="transparent"/>`
+                : `<path data-id="${id}" data-part="ov" d="${z.d}" fill-rule="evenodd" fill="transparent"/>`;
   }
-  $('prKitSvg').innerHTML = `<svg viewBox="-130 -10 1160 470" role="img" aria-label="Drum kit">${g}${labels}</svg>`;
+  $('prKitSvg').innerHTML = `<svg viewBox="0 0 480 272" role="img" aria-label="Drum kit">${g}</svg>`;
   kitZones = {}; $('prKitSvg').querySelectorAll('[data-id]').forEach(el => { (kitZones[el.dataset.id] = kitZones[el.dataset.id] || []).push(el); });
+  kitPicKey = url ? key : '';
+  return true;
+}
+function buildKitSvg(){
+  try { buildKitSvgScreen(); } catch (e) { console.warn('kit picture', e); }
 }
 const mixHex = (a, b, k) => { const n = (h) => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16)); const A = n(a), B = n(b); return '#' + A.map((v, i) => Math.round(v + (B[i] - v) * k).toString(16).padStart(2, '0')).join(''); };
 function updateKit(){
   const wrap = $('prKitWrap'); if (!wrap) return;
   wrap.style.display = ps.showKit ? '' : 'none'; if (!ps.showKit) return;
   const now = performance.now();
-  if (now - kitSigAt > 400 || !kitSigAt){ kitSigAt = now; const sig = JSON.stringify(LAYOUT); if (sig !== kitSig || !$('prKitSvg').firstChild){ kitSig = sig; buildKitSvg(); } }
+  if (now - kitSigAt > 400 || !kitSigAt){ kitSigAt = now; const sig = (typeof screenLayout === 'function' ? JSON.stringify(screenLayout()) : '') + JSON.stringify(LAYOUT); if (sig !== kitSig || !$('prKitSvg').firstChild){ kitSig = sig; buildKitSvg(); } }
   // score notes the playhead has just passed
   if (run && !run.paused && tl && !(run.V < run.startMs)){
     const P = curP();
@@ -5903,7 +5909,10 @@ function updateKit(){
   } else kitLastP = null;
   for (const id in kitZones){
     const L = kitLit[id], k = L ? Math.max(0, 1 - (now - L.t0) / 320) : 0;
-    for (const el of kitZones[id]) el.setAttribute('fill', k > 0 ? mixHex(KIT_BASE[el.dataset.part], L.col, 0.25 + 0.75 * k) : KIT_BASE[el.dataset.part]);
+    for (const el of kitZones[id]){
+      if (el.dataset.part === 'ov'){ el.setAttribute('fill', k > 0 ? L.col : 'transparent'); el.setAttribute('fill-opacity', k > 0 ? (0.15 + 0.6 * k).toFixed(2) : 0); }
+      else el.setAttribute('fill', k > 0 ? mixHex(KIT_BASE[el.dataset.part], L.col, 0.25 + 0.75 * k) : KIT_BASE[el.dataset.part]);
+    }
     if (!k && L) delete kitLit[id];
   }
 }
