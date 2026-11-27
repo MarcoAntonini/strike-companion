@@ -3,7 +3,7 @@
 A free, unofficial editor for the **Alesis Strike / Strike Pro** drum module that runs in your web browser.
 It is laid out like the Alesis Strike Editor and adds live MIDI tools, a practice mode, and a **firmware patcher** that builds **Strike MOD FW**, an unofficial firmware mod for the Strike Pro.
 
-**Current release:** Strike Companion **v1.56** · Strike MOD FW **0.9.1-beta**
+**Current release:** Strike Companion **v1.57** · Strike MOD FW **0.9.2-beta**
 
 > **Not affiliated with, endorsed by or supported by Alesis or inMusic.** Alesis and Strike are trademarks of their owners.
 > File formats were worked out independently, for compatibility. Use at your own risk and keep backups.
@@ -34,7 +34,7 @@ Features, each of which can be left out:
 - **LOADING box**: shows loaded / total MB until the whole kit is in memory (red until playable, then blue)
 - **Faster instrument changes**: no 2-minute full kit reload when sample memory fills up
 - **Kick Rim**: the kick jack's ring (K2H) as its own pad
-- "MOD 0.9.1 BETA" label on the home screen
+- "MOD 0.9.2 BETA" label on the home screen
 
 Step-by-step instructions: **[User Guide](docs/USER_GUIDE.md)**.
 
@@ -101,8 +101,8 @@ This repository contains no Alesis firmware, software, samples or content. You n
 
 ## Versions
 
-- **Strike Companion** (the app): v1.56, shown at the top left of the app.
-- **Strike MOD FW** (the firmware mod it builds): 0.9.1-beta, shown on the module's home screen; 1.0.0 once it is stable. Based on Alesis firmware v1.5.
+- **Strike Companion** (the app): v1.57, shown at the top left of the app.
+- **Strike MOD FW** (the firmware mod it builds): 0.9.2-beta, shown on the module's home screen; 1.0.0 once it is stable. Based on Alesis firmware v1.5.
 
 See [CHANGELOG.md](CHANGELOG.md).
 

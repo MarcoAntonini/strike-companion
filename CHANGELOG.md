@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.57 — with Strike MOD FW 0.9.2-beta (2026-11-27)
+- Fix: the module could freeze completely (even the power button) when you pressed Back from the kit List view while a kit was still loading. The LOADING box and the pad-page meters no longer ask for a screen refresh while a page is opening.
+- Safer loading: the loader no longer sends screen updates from its own task.
+- Unticking **LOADING box** now always gives the factory loading screen, also together with a custom kit screen.
+- MOD label now reads "MOD 0.9.2 BETA".
+- Practice: the kit picture is now the same one as in the Kit Screen Creator / Kit Editor, with the pads lighting up on it (contributed by Marco Antonini, #4).
+- Questions such as the velocity-range **Add** button now open a window inside the app instead of a browser pop-up, which some browsers and app versions block; Practice: fixed notes sometimes not being assigned to the right row (contributed by Marco Antonini, #3).
+
 ## v1.56 — with Strike MOD FW 0.9.1-beta (2026-11-25)
 - **New: faster instrument changes (memory fix).** The stock firmware never frees sample memory: every instrument selected, even while browsing, is added, and when the 200 MB fills up the whole kit is wiped and reloaded (up to ~2 minutes from SD). Now only the sounds the kit no longer uses are dropped and the rest are moved together; the kit stays playable and only the new instrument loads. Tested on a 193 MB SD kit.
 - LOADING box: the bar now restarts when you switch kits while one is still loading, and it is red until the kit is playable (soft hits available), then turns blue.

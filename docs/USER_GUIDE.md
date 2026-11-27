@@ -1,6 +1,6 @@
 # Strike MOD FW — User Guide
 
-**Strike MOD FW 0.9.1-beta** · built with **Strike Companion v1.56**
+**Strike MOD FW 0.9.2-beta** · built with **Strike Companion v1.57**
 
 Strike MOD FW is unofficial, community-made firmware for the **Alesis Strike Pro** drum module. It adds features to the official Alesis v1.5 firmware. You build it yourself from your own copy of the official v1.5 update files, in your web browser. Nothing is uploaded anywhere.
 
@@ -39,7 +39,7 @@ Strike MOD FW is unofficial, community-made firmware for the **Alesis Strike Pro
 | **LOADING box**: shows loaded / total MB until the whole kit is in memory | while a kit loads | main app |
 | **Kick Rim**: the kick jack's ring (K2H) can be used as its own pad | VOICE page (Note Chase) and TRIGGER page | main app |
 | **Faster instrument changes**: when sample memory fills up, the kit stays loaded and only unused sounds are dropped | instrument editor, kit changes | main app |
-| **MOD 0.9.1 BETA** label | home screen, top right | main app |
+| **MOD 0.9.2 BETA** label | home screen, top right | main app |
 
 You choose which features to build in. Each one can be left out.
 
@@ -131,7 +131,7 @@ The patcher checks that your files are the genuine v1.5 files. It patches them a
 3. Connect USB to the PC.
 4. In the updater folder, run **`Alesis Strike Firmware Updater.exe`** and follow its steps. It flashes both the main app and the trigger firmware.
 5. **Do not touch the power or the cable until it says it has finished.**
-6. Restart the module. You should see **MOD 0.9.1 BETA** at the top right of the home screen.
+6. Restart the module. You should see **MOD 0.9.2 BETA** at the top right of the home screen.
 
 ![Kit screen with the MOD label (illustration)](images/illus_kitscreen.png)
 
@@ -186,6 +186,8 @@ For a large kit on the SD card (around 200 MB), the box goes through these stage
 2. **Loading initial samples…** (red): the start of every sample is read. Loud hits play first; soft hits may still sound like loud ones.
 3. **Initial samples loaded… / Loading rest of samples…** (blue): every velocity layer now plays, including soft hits. The rest of each sound (the tails) keeps loading in the background for roughly 70–80 s more. The box closes when the whole kit is loaded.
 
+Prefer the factory loading screen? Untick **LOADING box** in the patcher and rebuild; everything else stays the same.
+
 Kits on the internal drive load much faster. The SD card speed (about 2 MB/s) is a hardware limit; a faster card does not help.
 
 ### Faster instrument changes (memory fix)
@@ -228,7 +230,7 @@ The kick input's ring (**K2H**) can now be chosen as its own pad on the **VOICE*
 ## 11. Reporting problems
 
 Open an issue on this GitHub repository. Include:
-- the MOD FW version (`0.9.1-beta`) and the Strike Companion version (shown at the top left, e.g. v1.56)
+- the MOD FW version (`0.9.2-beta`) and the Strike Companion version (shown at the top left, e.g. v1.57)
 - which features you built in
 - the md5 values shown after the build
 - your module (Strike Pro / Strike Pro SE) and what happened
