@@ -721,7 +721,7 @@ input.pr-ren{width:96px;font:inherit;font-weight:600;background:#0a0d12;color:#f
     <div class="card">
       <h2>Hi-hat</h2>
       <div class="hh-grid" id="hhGrid"></div>
-      <p class="small muted" style="margin:10px 0 0">“?” marks curve names inferred from the pattern but not yet confirmed on the module.</p>
+      <p class="small muted hidden" id="curveNote" style="margin:10px 0 0"></p>
     </div>
     <div class="card">
       <div class="row" style="justify-content:space-between;margin-bottom:8px">
@@ -1323,11 +1323,13 @@ SC.hexTextToBytes = (text) => {
 };
 
 /* ---------- Curves and names ---------- */
-SC.PAD_CURVES = {6:'Linear',7:'Log1',8:'Log2?',9:'Log3?',10:'Log4?',5:'Exp1',4:'Exp2?',3:'Exp3?',2:'Exp4?',
-                 11:'Spline1',12:'Spline2?',13:'Spline3?',14:'Spline4?',0:'Offset? (0)',1:'Offset? (1)',15:'Constant'};
-SC.PAD_CURVE_ORDER = [6,7,8,9,10,5,4,3,2,11,12,13,14,0,1,15];
-SC.PEDAL_CURVES = {0:'Linear',1:'Exp1?',2:'Exp2?',3:'Exp3?',4:'Exp4?',5:'Log1?',6:'Log2?',7:'Log3',8:'Log4'};
-SC.PEDAL_CURVE_ORDER = [0,1,2,3,4,5,6,7,8];
+/* confirmed one by one on the module (dumps of every curve on Kick head, Snare head and the hi-hat velocity curve) */
+SC.PAD_CURVES = {6:'Linear',7:'Log1',8:'Log2',9:'Log3',10:'Log4',5:'Exp1',4:'Exp2',3:'Exp3',2:'Exp4',
+                 11:'Spline1',12:'Spline2',13:'Spline3',14:'Spline4',1:'Offset',15:'Constant'};   // value 0 has never been seen on the module: it is only shown if a file contains it
+SC.PAD_CURVE_ORDER = [6,7,8,9,10,5,4,3,2,11,12,13,14,1,15];
+/* the pedal list is NOT in the same order as the pad one: the Exp curves run backwards (1 = Exp4 … 4 = Exp1) and it has the 4 Splines */
+SC.PEDAL_CURVES = {0:'Linear',1:'Exp4',2:'Exp3',3:'Exp2',4:'Exp1',5:'Log1',6:'Log2',7:'Log3',8:'Log4',9:'Spline1',10:'Spline2',11:'Spline3',12:'Spline4'};
+SC.PEDAL_CURVE_ORDER = [0,1,2,3,4,5,6,7,8,9,10,11,12];
 SC.PAD_NAMES = ['Kick','Kick rim','Snare head','Snare rim',
   'Tom 1 head','Tom 1 rim','Tom 2 head','Tom 2 rim','Tom 3 head','Tom 3 rim','Tom 4 head','Tom 4 rim',
   'Hi-hat bow','Hi-hat edge','Crash 1 bow','Crash 1 edge','Crash 2 bow','Crash 2 edge','Crash 3 bow','Crash 3 edge',
@@ -1373,7 +1375,7 @@ SC.trigScore = (d) => {
   let s = 0;
   if (d.length < 16) return 999;
   for (const i of [12,13,15]) if (d[i]>99) s++;
-  if ((d[7]&15) > 8) s++;
+  if ((d[7]&15) > 12) s++;
   if ((d[8]|(d[9]<<8)) > 4095) s++;
   if ((d[10]|(d[11]<<8)) > 4095) s++;
   const n = Math.floor((d.length-16)/8);
@@ -2550,6 +2552,12 @@ function afterEdit(){
     }
   }
   T.changes = changes;
+  // a curve value that has never been seen on the module: say so (only then)
+  const unk = [];
+  for (const f of SC.HH_FIELDS) if (f.kind==='select' && /Curve/i.test(f.label)){ const v=f.get(T.data); if (!(v in f.opts)) unk.push(`Hi-hat ${f.label.toLowerCase()} = ${v}`); }
+  for (let r=0;r<n;r++){ const o=SC.recOff(r), f=SC.PAD_FIELDS.find(x=>x.key==='curve'); const v=f.get(T.data,o); if (!(v in f.opts)) unk.push(`${SC.PAD_NAMES[r] ?? 'Record '+r} curve = ${v}`); }
+  $('curveNote').classList.toggle('hidden', !unk.length);
+  $('curveNote').textContent = unk.length ? 'Curve names were confirmed on the module (a “?” would mark a value not seen yet). Not seen yet here: ' + unk.join(', ') + '.' : '';
   $('changes').innerHTML = changes.length ? `<ul style="margin:0;padding-left:18px">${changes.map(c=>`<li>${esc(c)}</li>`).join('')}</ul>` : '<span class="muted">No changes — matches the loaded dump.</span>';
   // hex view
   let h=''; for (let i=0;i<T.data.length;i+=8){
